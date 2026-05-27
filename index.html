@@ -151,9 +151,9 @@ const SCALES = {
             { icon:'🛁', text:'洗澡', opts:[{t:'依赖',s:0},{t:'自理',s:5}] }
         ]}],
         calc: function(answers) {
-            let total = 0; let detail = [];
+            let total = 0; let detail = []; let idx = 0;
             this.sections[0].items.forEach((item,i) => {
-                let score = answers[item.text] || 0;
+                idx++; let score = answers[idx] || 0;
                 total += score; detail.push({icon:item.icon, name:item.text, score, max:item.opts[item.opts.length-1].s});
             });
             let level,lvlClass;
@@ -190,10 +190,10 @@ const SCALES = {
             ]}
         ],
         calc: function(answers) {
-            let total = 0; let detail = [];
+            let total = 0; let detail = []; let idx = 0;
             this.sections.forEach(s => {
                 s.items.forEach(item => {
-                    let score = answers[item.text] || 0;
+                    idx++; let score = answers[idx] || 0;
                     total += score; detail.push({icon:item.icon, name:item.text, score, max:item.opts[item.opts.length-1].s});
                 });
             });
@@ -218,9 +218,9 @@ const SCALES = {
             { icon:'📞', text:'口语表达：描述图片内容或讲述事件', opts:[{t:'不能',s:0},{t:'需提示',s:1},{t:'基本独立但欠流利',s:2},{t:'流利准确',s:3}] }
         ]}],
         calc: function(answers) {
-            let total = 0; let detail = [];
+            let total = 0; let detail = []; let idx = 0;
             this.sections[0].items.forEach(item => {
-                let score = answers[item.text] || 0;
+                idx++; let score = answers[idx] || 0;
                 total += score; detail.push({icon:item.icon, name:item.text, score, max:item.opts[item.opts.length-1].s});
             });
             let level,lvlClass;
@@ -252,10 +252,10 @@ const SCALES = {
             ]}
         ],
         calc: function(answers) {
-            let total = 0; let detail = [];
+            let total = 0; let detail = []; let idx = 0;
             this.sections.forEach(s => {
                 s.items.forEach(item => {
-                    let score = answers[item.text] || 0;
+                    idx++; let score = answers[idx] || 0;
                     total += score; detail.push({icon:item.icon, name:item.text, score, max:item.opts[item.opts.length-1].s});
                 });
             });
@@ -281,7 +281,7 @@ const SCALES = {
             ]}
         ]}],
         calc: function(answers) {
-            let total = answers['肌张力总体评价'] || 0;
+            let total = answers[1] || 0;
             let level,lvlClass;
             if(total==0){level='无肌张力增高';lvlClass='good'}
             else if(total<=2){level='轻度肌张力增高';lvlClass='mid'}
@@ -310,10 +310,10 @@ const SCALES = {
             ]}
         ],
         calc: function(answers) {
-            let total = 0; let detail = []; let count = 0;
+            let total = 0; let detail = []; let count = 0; let idx = 0;
             this.sections.forEach(s => {
                 s.items.forEach(item => {
-                    let score = answers[item.text] || 0;
+                    idx++; let score = answers[idx] || 0;
                     total += score; count++;
                     detail.push({icon:item.icon, name:item.text, score, max:5});
                 });
@@ -341,9 +341,9 @@ const SCALES = {
             { icon:'🔄', text:'踝关节背屈/跖屈（正常0-50°）', opts:[{t:'>40°',s:2},{t:'20-40°',s:1},{t:'<20°',s:0}] }
         ]}],
         calc: function(answers) {
-            let total = 0; let detail = [];
+            let total = 0; let detail = []; let idx = 0;
             this.sections[0].items.forEach(item => {
-                let score = answers[item.text] || 0;
+                idx++; let score = answers[idx] || 0;
                 total += score; detail.push({icon:item.icon, name:item.text, score, max:2});
             });
             let level,lvlClass;
@@ -375,10 +375,10 @@ const SCALES = {
             ]}
         ],
         calc: function(answers) {
-            let total = 0; let detail = [];
+            let total = 0; let detail = []; let idx = 0;
             this.sections.forEach(s => {
                 s.items.forEach(item => {
-                    let score = answers[item.text] || 0;
+                    idx++; let score = answers[idx] || 0;
                     total += score; detail.push({icon:item.icon, name:item.text, score, max:item.opts[item.opts.length-1].s});
                 });
             });
@@ -438,12 +438,17 @@ function selectScale(key) {
 // ================================================================
 // 渲染问卷
 // ================================================================
+// HTML转义
+function esc(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 function renderQuestionPage(s) {
     const container = document.getElementById('pageContainer');
     let html = `
         <div class="section-intro">
-            <h3>📌 ${s.name} - 评估说明</h3>
-            <p>${s.desc} 请根据患者实际表现，在每一项中选择最符合的选项。</p>
+            <h3>📌 ${esc(s.name)} - 评估说明</h3>
+            <p>${esc(s.desc)} 请根据患者实际表现，在每一项中选择最符合的选项。</p>
         </div>
         <div id="questionsContainer"></div>
         <div class="bottom-bar">
@@ -456,23 +461,25 @@ function renderQuestionPage(s) {
     let qHtml = '';
     let totalQ = 0;
     s.sections.forEach((section, si) => {
-        qHtml += `<div style="font-size:14px;font-weight:600;color:#1a365d;margin:16px 0 10px;">${section.title}</div>`;
+        qHtml += `<div style="font-size:14px;font-weight:600;color:#1a365d;margin:16px 0 10px;">${esc(section.title)}</div>`;
         section.items.forEach(item => {
             totalQ++;
+            // 用索引qIdx作为唯一标识（避免题目文字含引号破坏HTML属性）
+            const qIdx = s.id + '_q' + totalQ;
             const optHtml = item.opts.map((opt, oi) => `
-                <label class="option-item" onclick="selectOption('${s.id}', '${item.text.replace(/'/g,"\\'")}', ${opt.s}, this)">
-                    <input type="radio" name="q_${s.id}_${item.text}" value="${opt.s}">
+                <label class="option-item" onclick="selectOption('${s.id}', ${totalQ}, ${opt.s}, this)">
+                    <input type="radio" name="${qIdx}" value="${opt.s}">
                     <span class="custom-radio"></span>
-                    <span class="option-text">${opt.t}</span>
+                    <span class="option-text">${esc(opt.t)}</span>
                     <span class="option-score">${opt.s} 分</span>
                 </label>
             `).join('');
             qHtml += `
-                <div class="question-card" id="card_${s.id}_${totalQ}">
+                <div class="question-card" id="card_${qIdx}">
                     <div class="question-header">
                         <span class="q-num">${totalQ}</span>
-                        <span class="q-text">${item.text}</span>
-                        <span class="q-icon">${item.icon}</span>
+                        <span class="q-text">${esc(item.text)}</span>
+                        <span class="q-icon">${esc(item.icon)}</span>
                     </div>
                     <div class="options-group">${optHtml}</div>
                 </div>
@@ -485,11 +492,11 @@ function renderQuestionPage(s) {
 }
 
 // ================================================================
-// 选择选项
+// 选择选项（用题目序号qIdx标识，避免特殊字符问题）
 // ================================================================
-function selectOption(sId, qText, score, labelEl) {
+function selectOption(sId, qIdx, score, labelEl) {
     if (!answers[sId]) answers[sId] = {};
-    answers[sId][qText] = score;
+    answers[sId][qIdx] = score;
 
     const card = labelEl.closest('.question-card');
     card.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
