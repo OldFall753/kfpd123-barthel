@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>改良Barthel指数评定量表</title>
+    <style>
+        /* ===== 全局重置 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ================================================================ */
+        /*  左侧导航栏                                                       */
+        /* ================================================================ */
+        .sidebar {
+            width: 220px;
+            background: linear-gradient(180deg, #1a365d 0%, #1e4d6e 100%);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            text-align: center;
+        }
+        .sidebar-header .logo-icon {
+            font-size: 36px;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .sidebar-header h2 {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            line-height: 1.4;
+        }
+        .sidebar-header .sub-logo {
+            font-size: 11px;
+            opacity: 0.6;
+            margin-top: 4px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.18);
+            color: #fff;
+            font-weight: 500;
+        }
+        .nav-item .nav-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+        .nav-item .nav-badge {
+            margin-left: auto;
+            background: rgba(255, 255, 255, 0.15);
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: center;
+        }
+
+        /* ===== 移动端：汉堡菜单按钮 ===== */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 1100;
+            width: 42px;
+            height: 42px;
+            border: none;
+            border-radius: 10px;
+            background: #1a365d;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 999;
+        }
+
+        /* ================================================================ */
+        /*  主内容区                                                         */
+        /* ================================================================ */
+        .main-content {
+            margin-left: 220px;
+            flex: 1;
+            min-height: 100vh;
+            padding: 32px 40px;
+            transition: margin-left 0.3s;
+        }
+
+        /* ===== 顶栏 ===== */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e8edf2;
+        }
+        .topbar .page-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a365d;
+        }
+        .topbar .page-status {
+            font-size: 13px;
+            color: #888;
+            background: #f5f7fa;
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
+
+        /* ===== 页面容器 ===== */
+        .page {
+            display: none;
+            animation: fadeUp 0.35s ease;
+        }
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ================================================================ */
+        /*  第一页：Barthel问卷                                              */
+        /* ================================================================ */
+        .section-intro {
+            background: linear-gradient(135deg, #e8f4fd, #dbeafe);
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            border-left: 4px solid #3b82f6;
+        }
+        .section-intro h3 {
+            font-size: 16px;
+            color: #1e4d6e;
+            margin-bottom: 6px;
+        }
+        .section-intro p {
+            font-size: 14px;
+            color: #4b6a8a;
+            line-height: 1.6;
+        }
+
+        /* ===== 每题卡片 ===== */
+        .question-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 2px solid transparent;
+            transition: all 0.25s;
+        }
+        .question-card:hover {
+            border-color: #e2e8f0;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        }
+        .question-card.answered {
+            border-color: #bfdbfe;
+            background: #f8faff;
+        }
+
+        .question-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .question-header .q-num {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            background: #1a365d;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .question-header .q-text {
+            flex: 1;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a2e;
+            padding-top: 4px;
+        }
+        .question-header .q-icon {
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        /* ===== 选项区域（单框多选 = 选项组） ===== */
+        .options-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-left: 42px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+            border: 1.5px solid transparent;
+        }
+        .option-item:hover {
+            background: #f0f7ff;
+            border-color: #dbeafe;
+        }
+        .option-item input[type="radio"] {
+            display: none;
+        }
+        .option-item .custom-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #d9d9d9;
+            border-radius: 50%;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .option-item input:checked + .custom-radio {
+            border-color: #2563eb;
+            background: #2563eb;
+        }
+        .option-item input:checked + .custom-radio::after {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #fff;
+        }
+        .option-item .option-text {
+            font-size: 14px;
+            color: #333;
+            flex: 1;
+        }
+        .option-item .option-score {
+            font-size: 13px;
+            color: #888;
+            font-weight: 500;
+        }
+        .option-item.selected {
+            background: #eff6ff;
+            border-color: #93c5fd;
+        }
+        .option-item.selected .option-text {
+            color: #1e4d6e;
+            font-weight: 500;
+        }
+        .option-item.selected .option-score {
+            color: #2563eb;
+            font-weight: 600;
+        }
+
+        /* ===== 底部按钮 ===== */
+        .bottom-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid #e8edf2;
+        }
+        .bottom-bar .progress-text {
+            font-size: 14px;
+            color: #888;
+        }
+        .bottom-bar .progress-text strong {
+            color: #1a365d;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .btn-primary {
+            background: #2563eb;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+        }
+        .btn-primary:disabled {
+            background: #93c5fd;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+        .btn-success {
+            background: #16a34a;
+            color: #fff;
+        }
+        .btn-success:hover {
+            background: #15803d;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(22, 163, 74, 0.3);
+        }
+        .btn-outline {
+            background: transparent;
+            color: #2563eb;
+            border: 2px solid #2563eb;
+        }
+        .btn-outline:hover {
+            background: #eff6ff;
+        }
+
+        /* ================================================================ */
+        /*  第二页：评分结果                                                 */
+        /* ================================================================ */
+        .result-hero {
+            background: linear-gradient(135deg, #1a365d, #1e4d6e);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            color: #fff;
+            margin-bottom: 28px;
+        }
+        .result-hero .score-number {
+            font-size: 64px;
+            font-weight: 800;
+            line-height: 1;
+            margin: 8px 0;
+        }
+        .result-hero .score-label {
+            font-size: 16px;
+            opacity: 0.8;
+            margin-bottom: 4px;
+        }
+        .result-hero .score-level {
+            display: inline-block;
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+        .score-level.independent { background: #16a34a; }
+        .score-level.mild { background: #eab308; color: #1a1a2e; }
+        .score-level.moderate { background: #f97316; }
+        .score-level.severe { background: #ef4444; }
+        .score-level.very-severe { background: #dc2626; }
+
+        /* ===== 各项得分明细 ===== */
+        .score-detail-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a365d;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .score-table {
+            background: #fff;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            margin-bottom: 24px;
+        }
+        .score-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.2s;
+        }
+        .score-row:last-child {
+            border-bottom: none;
+        }
+        .score-row:hover {
+            background: #f8faff;
+        }
+        .score-row .sr-index {
+            width: 30px;
+            font-size: 13px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+        .score-row .sr-icon {
+            font-size: 18px;
+            margin-right: 12px;
+        }
+        .score-row .sr-name {
+            flex: 1;
+            font-size: 14px;
+            color: #1a1a2e;
+        }
+        .score-row .sr-score {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2563eb;
+            min-width: 40px;
+            text-align: right;
+        }
+        .score-row .sr-max {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-left: 4px;
+        }
+        .score-row .sr-bar-bg {
+            width: 80px;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            margin-left: 16px;
+            overflow: hidden;
+        }
+        .score-row .sr-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            transition: width 0.6s ease;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        /* ===== 空状态 ===== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+        .empty-state .empty-icon {
+            font-size: 56px;
+            margin-bottom: 12px;
+        }
+        .empty-state p {
+            font-size: 15px;
+        }
+
+        /* ================================================================ */
+        /*  移动端适配                                                       */
+        /* ================================================================ */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .sidebar-overlay.show {
+                display: block;
+            }
+            .menu-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 20px 16px;
+                padding-top: 64px;
+            }
+            .question-header .q-num {
+                width: 26px;
+                height: 26px;
+                font-size: 12px;
+            }
+            .options-group {
+                padding-left: 0;
+                margin-top: 4px;
+            }
+            .result-hero .score-number {
+                font-size: 48px;
+            }
+            .score-row {
+                padding: 10px 14px;
+            }
+            .score-row .sr-bar-bg {
+                width: 50px;
+            }
+            .bottom-bar {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+                text-align: center;
+            }
+            .btn {
+                padding: 12px 20px;
+            }
+            .result-actions {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .question-card {
+                padding: 14px 16px;
+            }
+            .option-item {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== 移动端汉堡菜单 ===== -->
+<button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">☰</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- ================================================================ -->
+<!--  左侧导航栏                                                       -->
+<!-- ================================================================ -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <span class="logo-icon">🏥</span>
+        <h2>改良Barthel<br>指数评定量表</h2>
+        <div class="sub-logo">Modified Barthel Index</div>
+    </div>
+
+    <div class="sidebar-nav">
+        <button class="nav-item active" onclick="switchNav('question')">
+            <span class="nav-icon">📋</span>
+            问卷评估
+            <span class="nav-badge" id="navBadge">10题</span>
+        </button>
+        <button class="nav-item" onclick="switchNav('result')">
+            <span class="nav-icon">📊</span>
+            评分结果
+            <span class="nav-badge" id="resultBadge">待评估</span>
+        </button>
+    </div>
+
+    <div class="sidebar-footer">
+        kfpd123-barthel v1.0
+    </div>
+</nav>
+
+<!-- ================================================================ -->
+<!--  主内容区                                                         -->
+<!-- ================================================================ -->
+<div class="main-content">
+
+    <!-- ===== 顶栏 ===== -->
+    <div class="topbar">
+        <span class="page-title" id="topbarTitle">📋 问卷评估</span>
+        <span class="page-status" id="topbarStatus">共 10 题</span>
+    </div>
+
+    <!-- ============================================================ -->
+    <!--  第一页：Barthel问卷                                          -->
+    <!-- ============================================================ -->
+    <div id="page-question" class="page active">
+
+        <div class="section-intro">
+            <h3>📌 评估说明</h3>
+            <p>改良Barthel指数（Modified Barthel Index）用于评估患者的日常生活自理能力。
+            请根据患者目前的实际表现，在每一项中选择最符合的选项。总分范围为 <strong>0 ~ 100 分</strong>。</p>
+        </div>
+
+        <!-- 题目由 JavaScript 动态渲染 -->
+        <div id="questionsContainer"></div>
+
+        <div class="bottom-bar">
+            <span class="progress-text" id="progressText">已作答：<strong>0</strong> / 10 题</span>
+            <button class="btn btn-primary" id="btnSubmit" onclick="submitAssessment()" disabled>
+                ✅ 提交评估 →
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!--  第二页：评分结果                                             -->
+    <!-- ============================================================ -->
+    <div id="page-result" class="page">
+
+        <div id="resultContent">
+            <!-- 无数据时显示 -->
+            <div class="empty-state" id="emptyResult">
+                <div class="empty-icon">📋</div>
+                <p>还没有评估数据，请先完成问卷评估</p>
+                <button class="btn btn-primary" onclick="switchNav('question')" style="margin-top: 16px;">
+                    ← 去填写问卷
+                </button>
+            </div>
+
+            <!-- 有数据时显示（初始隐藏） -->
+            <div id="resultData" style="display: none;">
+                <div class="result-hero">
+                    <div class="score-label">Barthel 总分</div>
+                    <div class="score-number" id="totalScore">0</div>
+                    <div style="font-size:13px; opacity:0.7;">/ 100 分</div>
+                    <div class="score-level" id="scoreLevelTag">待评估</div>
+                </div>
+
+                <div class="score-detail-title">
+                    📊 各项得分明细
+                </div>
+                <div class="score-table" id="scoreDetailTable"></div>
+
+                <div class="result-actions">
+                    <button class="btn btn-outline" onclick="switchNav('question')">
+                        ← 返回修改
+                    </button>
+                    <button class="btn btn-success" onclick="resetAssessment()">
+                        🔄 重新评估
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // ================================================================
+    //  数据：改良Barthel指数题目
+    // ================================================================
+    const QUESTIONS = [
+        {
+            id: 1,
+            icon: '🚽',
+            text: '大便控制',
+            options: [
+                { text: '失禁或昏迷', score: 0 },
+                { text: '偶尔失禁（每周 < 1 次）', score: 5 },
+                { text: '能控制', score: 10 }
+            ]
+        },
+        {
+            id: 2,
+            icon: '🚻',
+            text: '小便控制',
+            options: [
+                { text: '失禁或昏迷', score: 0 },
+                { text: '偶尔失禁（每24h < 1 次）', score: 5 },
+                { text: '能控制', score: 10 }
+            ]
+        },
+        {
+            id: 3,
+            icon: '🧼',
+            text: '修饰（洗脸、刷牙、梳头、刮脸）',
+            options: [
+                { text: '需帮助', score: 0 },
+                { text: '独立完成', score: 5 }
+            ]
+        },
+        {
+            id: 4,
+            icon: '🚾',
+            text: '如厕（包括拭净、整理衣裤、冲水）',
+            options: [
+                { text: '依赖', score: 0 },
+                { text: '需部分帮助', score: 5 },
+                { text: '自理', score: 10 }
+            ]
+        },
+        {
+            id: 5,
+            icon: '🍽️',
+            text: '进食',
+            options: [
+                { text: '依赖', score: 0 },
+                { text: '需部分帮助（切面包、抹黄油等）', score: 5 },
+                { text: '自理', score: 10 }
+            ]
+        },
+        {
+            id: 6,
+            icon: '🛏️',
+            text: '转移（床 → 椅）',
+            options: [
+                { text: '完全依赖，不能坐', score: 0 },
+                { text: '需大量帮助（2人），能坐', score: 5 },
+                { text: '需少量帮助（1人）或指导', score: 10 },
+                { text: '自理', score: 15 }
+            ]
+        },
+        {
+            id: 7,
+            icon: '🚶',
+            text: '步行（平地 45 米）',
+            options: [
+                { text: '不能步行', score: 0 },
+                { text: '在轮椅上独立行动', score: 5 },
+                { text: '需1人帮助步行（体力或语言指导）', score: 10 },
+                { text: '独立步行（可用辅助器）', score: 15 }
+            ]
+        },
+        {
+            id: 8,
+            icon: '👔',
+            text: '穿衣（系扣、拉链、穿鞋等）',
+            options: [
+                { text: '依赖', score: 0 },
+                { text: '需一半帮助', score: 5 },
+                { text: '自理', score: 10 }
+            ]
+        },
+        {
+            id: 9,
+            icon: '🪜',
+            text: '上下楼梯',
+            options: [
+                { text: '不能', score: 0 },
+                { text: '需部分帮助', score: 5 },
+                { text: '自理', score: 10 }
+            ]
+        },
+        {
+            id: 10,
+            icon: '🛁',
+            text: '洗澡',
+            options: [
+                { text: '依赖', score: 0 },
+                { text: '自理', score: 5 }
+            ]
+        }
+    ];
+
+    // ================================================================
+    //  状态
+    // ================================================================
+    let answers = {};       // { questionId: selectedScore }
+    let totalScore = 0;
+    let isSubmitted = false;
+
+    // ================================================================
+    //  渲染问卷
+    // ================================================================
+    function renderQuestions() {
+        const container = document.getElementById('questionsContainer');
+        container.innerHTML = QUESTIONS.map(q => {
+            const optionsHtml = q.options.map((opt, idx) => {
+                const optId = `q${q.id}_${idx}`;
+                return `
+                    <label class="option-item" onclick="selectOption(${q.id}, ${opt.score}, this)">
+                        <input type="radio" name="q${q.id}" value="${opt.score}" id="${optId}">
+                        <span class="custom-radio"></span>
+                        <span class="option-text">${opt.text}</span>
+                        <span class="option-score">${opt.score} 分</span>
+                    </label>
+                `;
+            }).join('');
+
+            return `
+                <div class="question-card" id="card_${q.id}">
+                    <div class="question-header">
+                        <span class="q-num">${q.id}</span>
+                        <span class="q-text">${q.text}</span>
+                        <span class="q-icon">${q.icon}</span>
+                    </div>
+                    <div class="options-group">
+                        ${optionsHtml}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        updateProgress();
+    }
+
+    // ================================================================
+    //  选择选项
+    // ================================================================
+    function selectOption(qId, score, labelEl) {
+        // 清除同一题其他选项的选中状态
+        const card = document.getElementById('card_' + qId);
+        card.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
+
+        // 标记当前选中
+        labelEl.classList.add('selected');
+        labelEl.querySelector('input[type="radio"]').checked = true;
+
+        // 记录答案
+        answers[qId] = score;
+
+        // 卡片标记已作答
+        card.classList.add('answered');
+
+        // 更新进度
+        updateProgress();
+
+        // 如果全部答完，启用提交按钮
+        const answeredCount = Object.keys(answers).length;
+        document.getElementById('btnSubmit').disabled = answeredCount < QUESTIONS.length;
+    }
+
+    // ================================================================
+    //  更新进度
+    // ================================================================
+    function updateProgress() {
+        const answered = Object.keys(answers).length;
+        const total = QUESTIONS.length;
+        document.getElementById('progressText').innerHTML = `已作答：<strong>${answered}</strong> / ${total} 题`;
+        document.getElementById('navBadge').textContent = answered > 0 ? `${answered}/${total}` : `${total}题`;
+    }
+
+    // ================================================================
+    //  提交评估
+    // ================================================================
+    function submitAssessment() {
+        const answeredCount = Object.keys(answers).length;
+        if (answeredCount < QUESTIONS.length) return;
+
+        // 计算总分
+        totalScore = 0;
+        QUESTIONS.forEach(q => {
+            totalScore += answers[q.id] || 0;
+        });
+
+        isSubmitted = true;
+
+        // 保存到 localStorage
+        localStorage.setItem('barthel_answers', JSON.stringify(answers));
+        localStorage.setItem('barthel_total', totalScore);
+
+        // 跳转到结果页
+        switchNav('result');
+    }
+
+    // ================================================================
+    //  渲染评分结果
+    // ================================================================
+    function renderResults() {
+        const emptyEl = document.getElementById('emptyResult');
+        const dataEl = document.getElementById('resultData');
+
+        const savedAnswers = localStorage.getItem('barthel_answers');
+        const savedTotal = localStorage.getItem('barthel_total');
+
+        if (!savedAnswers || !savedTotal) {
+            emptyEl.style.display = 'block';
+            dataEl.style.display = 'none';
+            return;
+        }
+
+        emptyEl.style.display = 'none';
+        dataEl.style.display = 'block';
+
+        const storedAnswers = JSON.parse(savedAnswers);
+        const storedTotal = parseInt(savedTotal);
+
+        // 显示总分
+        document.getElementById('totalScore').textContent = storedTotal;
+
+        // 判断等级
+        const levelTag = document.getElementById('scoreLevelTag');
+        let levelText, levelClass;
+        if (storedTotal >= 80) {
+            levelText = '✅ 基本自理（轻度依赖）';
+            levelClass = 'independent';
+        } else if (storedTotal >= 60) {
+            levelText = '⚠️ 中度依赖';
+            levelClass = 'mild';
+        } else if (storedTotal >= 40) {
+            levelText = '🔶 重度依赖';
+            levelClass = 'moderate';
+        } else if (storedTotal >= 20) {
+            levelText = '🔴 极重度依赖';
+            levelClass = 'severe';
+        } else {
+            levelText = '⛔ 完全依赖';
+            levelClass = 'very-severe';
+        }
+        levelTag.textContent = levelText;
+        levelTag.className = 'score-level ' + levelClass;
+
+        // 各项得分明细
+        const table = document.getElementById('scoreDetailTable');
+        table.innerHTML = QUESTIONS.map(q => {
+            const score = storedAnswers[q.id] || 0;
+            const maxScore = q.options[q.options.length - 1].score;
+            const pct = (score / maxScore) * 100;
+            return `
+                <div class="score-row">
+                    <span class="sr-index">${q.id}</span>
+                    <span class="sr-icon">${q.icon}</span>
+                    <span class="sr-name">${q.text}</span>
+                    <span class="sr-score">${score}</span>
+                    <span class="sr-max">/ ${maxScore}</span>
+                    <div class="sr-bar-bg">
+                        <div class="sr-bar-fill" style="width: ${pct}%"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // 更新导航栏标记
+        document.getElementById('resultBadge').textContent = storedTotal + '分';
+    }
+
+    // ================================================================
+    //  重新评估
+    // ================================================================
+    function resetAssessment() {
+        if (!confirm('确定要重新评估吗？当前数据将被清除。')) return;
+
+        answers = {};
+        isSubmitted = false;
+        localStorage.removeItem('barthel_answers');
+        localStorage.removeItem('barthel_total');
+
+        // 重置所有选项
+        QUESTIONS.forEach(q => {
+            const card = document.getElementById('card_' + q.id);
+            if (card) {
+                card.classList.remove('answered');
+                card.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
+                card.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+            }
+        });
+
+        document.getElementById('btnSubmit').disabled = true;
+        document.getElementById('resultBadge').textContent = '待评估';
+        updateProgress();
+
+        switchNav('question');
+    }
+
+    // ================================================================
+    //  导航切换
+    // ================================================================
+    function switchNav(target) {
+        // 隐藏所有页面
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+        // 显示目标页面
+        document.getElementById('page-' + target).classList.add('active');
+
+        // 激活导航项
+        document.querySelectorAll('.nav-item').forEach(n => {
+            if (n.textContent.includes(target === 'question' ? '问卷' : '评分')) {
+                n.classList.add('active');
+            }
+        });
+
+        // 更新顶栏
+        const titles = { question: '📋 问卷评估', result: '📊 评分结果' };
+        const statuses = {
+            question: '共 10 题',
+            result: isSubmitted ? `总分 ${totalScore} 分` : '待评估'
+        };
+        document.getElementById('topbarTitle').textContent = titles[target];
+        document.getElementById('topbarStatus').textContent = target === 'result' && isSubmitted
+            ? `总分 ${totalScore} / 100 分`
+            : statuses[target];
+
+        // 如果进入结果页，渲染结果
+        if (target === 'result') {
+            renderResults();
+        }
+
+        // 关闭移动端侧栏
+        closeSidebar();
+    }
+
+    // ================================================================
+    //  侧栏控制（移动端）
+    // ================================================================
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('show');
+    }
+    function closeSidebar() {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('show');
+    }
+
+    // ================================================================
+    //  页面加载
+    // ================================================================
+    window.addEventListener('DOMContentLoaded', function() {
+        renderQuestions();
+
+        // 检查是否有已保存的数据
+        const savedAnswers = localStorage.getItem('barthel_answers');
+        if (savedAnswers) {
+            const storedAnswers = JSON.parse(savedAnswers);
+            answers = storedAnswers;
+
+            // 恢复已选状态
+            QUESTIONS.forEach(q => {
+                const score = storedAnswers[q.id];
+                if (score !== undefined) {
+                    const card = document.getElementById('card_' + q.id);
+                    card.querySelectorAll('.option-item').forEach(el => {
+                        const radio = el.querySelector('input[type="radio"]');
+                        if (parseInt(radio.value) === score) {
+                            el.classList.add('selected');
+                            radio.checked = true;
+                            card.classList.add('answered');
+                        }
+                    });
+                }
+            });
+
+            isSubmitted = true;
+            totalScore = parseInt(localStorage.getItem('barthel_total') || 0);
+            updateProgress();
+
+            // 如果全部答完，启用提交
+            if (Object.keys(answers).length === QUESTIONS.length) {
+                document.getElementById('btnSubmit').disabled = false;
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
