@@ -1,624 +1,590 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>康复功能评定平台</title>
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:#f0f4f8;min-height:100vh;display:flex}
-        .sidebar{width:230px;background:linear-gradient(180deg,#1a365d 0%,#1e4d6e 100%);color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:1000;transition:transform .3s}
-        .sidebar-header{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.1);text-align:center}
-        .sidebar-header .logo-icon{font-size:30px;display:block;margin-bottom:4px}
-        .sidebar-header h2{font-size:14px;font-weight:600;letter-spacing:.5px;line-height:1.3}
-        .sidebar-header .sub-logo{font-size:10px;opacity:.5;margin-top:2px}
-        .sidebar-nav{flex:1;padding:12px 10px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
-        .sidebar-nav::-webkit-scrollbar{width:4px}
-        .sidebar-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
-        .nav-group-label{font-size:10px;text-transform:uppercase;color:rgba(255,255,255,.35);padding:8px 10px 4px;letter-spacing:1px;font-weight:600}
-        .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;transition:all .2s;font-size:13px;color:rgba(255,255,255,.7);border:none;background:none;width:100%;text-align:left}
-        .nav-item:hover{background:rgba(255,255,255,.1);color:#fff}
-        .nav-item.active{background:rgba(255,255,255,.18);color:#fff;font-weight:500}
-        .nav-item .nav-icon{font-size:16px;width:22px;text-align:center;flex-shrink:0}
-        .nav-item .nav-badge{margin-left:auto;background:rgba(255,255,255,.12);font-size:10px;padding:1px 7px;border-radius:8px;flex-shrink:0}
-        .sidebar-footer{padding:12px 16px;border-top:1px solid rgba(255,255,255,.08);font-size:10px;color:rgba(255,255,255,.3);text-align:center}
-        .menu-toggle{display:none;position:fixed;top:10px;left:10px;z-index:1100;width:38px;height:38px;border:none;border-radius:8px;background:#1a365d;color:#fff;font-size:18px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15);align-items:center;justify-content:center}
-        .sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:999}
-        .main-content{margin-left:230px;flex:1;min-height:100vh;padding:24px 32px;transition:margin-left .3s}
-        .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid #e8edf2}
-        .topbar .page-title{font-size:20px;font-weight:700;color:#1a365d}
-        .topbar .page-status{font-size:12px;color:#888;background:#f5f7fa;padding:5px 12px;border-radius:16px}
-        .page{display:none;animation:fadeUp .35s ease}
-        .page.active{display:block}
-        @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-        .section-intro{background:linear-gradient(135deg,#e8f4fd,#dbeafe);border-radius:12px;padding:16px 20px;margin-bottom:20px;border-left:4px solid #3b82f6}
-        .section-intro h3{font-size:15px;color:#1e4d6e;margin-bottom:4px}
-        .section-intro p{font-size:13px;color:#4b6a8a;line-height:1.6}
-        .question-card{background:#fff;border-radius:12px;padding:16px 20px;margin-bottom:14px;box-shadow:0 2px 6px rgba(0,0,0,.04);border:2px solid transparent;transition:all .25s}
-        .question-card:hover{border-color:#e2e8f0}
-        .question-card.answered{border-color:#bfdbfe;background:#f8faff}
-        .question-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
-        .question-header .q-num{width:26px;height:26px;border-radius:6px;background:#1a365d;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
-        .question-header .q-text{flex:1;font-size:15px;font-weight:600;color:#1a1a2e;padding-top:3px}
-        .question-header .q-icon{font-size:18px;flex-shrink:0}
-        .options-group{display:flex;flex-direction:column;gap:4px;padding-left:36px}
-        .option-item{display:flex;align-items:center;padding:8px 12px;border-radius:8px;cursor:pointer;transition:all .2s;user-select:none;border:1.5px solid transparent}
-        .option-item:hover{background:#f0f7ff;border-color:#dbeafe}
-        .option-item input[type="radio"]{display:none}
-        .option-item .custom-radio{width:18px;height:18px;border:2px solid #d9d9d9;border-radius:50%;margin-right:10px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
-        .option-item input:checked+.custom-radio{border-color:#2563eb;background:#2563eb}
-        .option-item input:checked+.custom-radio::after{content:"";width:7px;height:7px;border-radius:50%;background:#fff}
-        .option-item .option-text{font-size:13px;color:#333;flex:1}
-        .option-item .option-score{font-size:12px;color:#888;font-weight:500}
-        .option-item.selected{background:#eff6ff;border-color:#93c5fd}
-        .option-item.selected .option-text{color:#1e4d6e;font-weight:500}
-        .option-item.selected .option-score{color:#2563eb;font-weight:600}
-        .bottom-bar{display:flex;justify-content:space-between;align-items:center;margin-top:22px;padding-top:16px;border-top:1px solid #e8edf2}
-        .bottom-bar .progress-text{font-size:13px;color:#888}
-        .bottom-bar .progress-text strong{color:#1a365d}
-        .btn{padding:10px 24px;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:all .25s}
-        .btn-primary{background:#2563eb;color:#fff}
-        .btn-primary:hover{background:#1d4ed8;transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,.3)}
-        .btn-primary:disabled{background:#93c5fd;cursor:not-allowed;transform:none;box-shadow:none}
-        .btn-secondary{background:#f1f5f9;color:#475569}
-        .btn-secondary:hover{background:#e2e8f0}
-        .btn-success{background:#16a34a;color:#fff}
-        .btn-success:hover{background:#15803d;transform:translateY(-1px);box-shadow:0 4px 12px rgba(22,163,74,.3)}
-        .btn-outline{background:transparent;color:#2563eb;border:2px solid #2563eb}
-        .btn-outline:hover{background:#eff6ff}
-        .result-hero{background:linear-gradient(135deg,#1a365d,#1e4d6e);border-radius:14px;padding:28px;text-align:center;color:#fff;margin-bottom:24px}
-        .result-hero .score-number{font-size:56px;font-weight:800;line-height:1;margin:6px 0}
-        .result-hero .score-label{font-size:14px;opacity:.8}
-        .result-hero .score-level{display:inline-block;padding:5px 18px;border-radius:16px;font-size:13px;font-weight:500;margin-top:6px}
-        .score-level.good{background:#16a34a}
-        .score-level.mid{background:#eab308;color:#1a1a2e}
-        .score-level.warn{background:#f97316}
-        .score-level.bad{background:#ef4444}
-        .score-level.severe{background:#dc2626}
-        .score-detail-title{font-size:15px;font-weight:600;color:#1a365d;margin-bottom:12px;display:flex;align-items:center;gap:6px}
-        .score-table{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.04);margin-bottom:20px}
-        .score-row{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid #f1f5f9;transition:background .2s}
-        .score-row:last-child{border-bottom:none}
-        .score-row:hover{background:#f8faff}
-        .score-row .sr-index{width:24px;font-size:12px;color:#94a3b8;font-weight:500}
-        .score-row .sr-icon{font-size:16px;margin-right:10px}
-        .score-row .sr-name{flex:1;font-size:13px;color:#1a1a2e}
-        .score-row .sr-score{font-size:13px;font-weight:600;color:#2563eb;min-width:30px;text-align:right}
-        .score-row .sr-max{font-size:12px;color:#94a3b8;margin-left:3px}
-        .score-row .sr-bar-bg{width:70px;height:5px;background:#e2e8f0;border-radius:3px;margin-left:12px;overflow:hidden}
-        .score-row .sr-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#3b82f6,#2563eb);transition:width .6s ease}
-        .empty-state{text-align:center;padding:50px 20px;color:#94a3b8}
-        .empty-state .empty-icon{font-size:48px;margin-bottom:10px}
-        .empty-state p{font-size:14px}
-        .result-actions{display:flex;gap:10px;justify-content:center;margin-top:16px}
-        @media(max-width:768px){
-            .sidebar{transform:translateX(-100%)}
-            .sidebar.open{transform:translateX(0)}
-            .sidebar-overlay.show{display:block}
-            .menu-toggle{display:flex}
-            .main-content{margin-left:0;padding:16px;padding-top:56px}
-            .options-group{padding-left:0;margin-top:4px}
-            .result-hero .score-number{font-size:42px}
-            .score-row .sr-bar-bg{width:50px}
-            .bottom-bar{flex-direction:column;gap:10px;align-items:stretch;text-align:center}
-            .question-card{padding:12px 14px}
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>康复功能评定平台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:#f0f4f8;min-height:100vh;display:flex}
+.sidebar{width:230px;background:linear-gradient(180deg,#1a365d 0%,#1e4d6e 100%);color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:1000;transition:transform .3s}
+.sidebar-header{padding:16px 14px 12px;border-bottom:1px solid rgba(255,255,255,.1);text-align:center}
+.sidebar-header .logo-icon{font-size:28px;display:block;margin-bottom:2px}
+.sidebar-header h2{font-size:13px;font-weight:600;letter-spacing:.5px}
+.sidebar-nav{flex:1;padding:8px 8px;overflow-y:auto}
+.sidebar-nav::-webkit-scrollbar{width:3px}
+.sidebar-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
+.nav-group-label{font-size:9px;text-transform:uppercase;color:rgba(255,255,255,.4);padding:6px 10px 2px;letter-spacing:1px;font-weight:700;margin-top:4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;cursor:pointer;transition:all .2s;font-size:12px;color:rgba(255,255,255,.7);border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:rgba(255,255,255,.1);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.18);color:#fff;font-weight:500}
+.nav-item .nav-icon{font-size:14px;width:20px;text-align:center;flex-shrink:0}
+.nav-item .nav-badge{margin-left:auto;background:rgba(255,255,255,.1);font-size:9px;padding:1px 6px;border-radius:6px;flex-shrink:0}
+.sidebar-footer{padding:10px 14px;border-top:1px solid rgba(255,255,255,.06);font-size:9px;color:rgba(255,255,255,.25);text-align:center}
+.menu-toggle{display:none;position:fixed;top:8px;left:8px;z-index:1100;width:34px;height:34px;border:none;border-radius:8px;background:#1a365d;color:#fff;font-size:16px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15);align-items:center;justify-content:center}
+.sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:999}
+.main-content{margin-left:230px;flex:1;min-height:100vh;padding:20px 28px;transition:margin-left .3s}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid #e8edf2}
+.topbar .page-title{font-size:18px;font-weight:700;color:#1a365d}
+.topbar .page-status{font-size:11px;color:#888;background:#f5f7fa;padding:4px 10px;border-radius:14px}
+.page{display:none;animation:fadeUp .3s ease}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.section-intro{background:linear-gradient(135deg,#e8f4fd,#dbeafe);border-radius:10px;padding:14px 18px;margin-bottom:16px;border-left:4px solid #3b82f6}
+.section-intro h3{font-size:14px;color:#1e4d6e;margin-bottom:3px}
+.section-intro p{font-size:12px;color:#4b6a8a;line-height:1.5}
+.question-card{background:#fff;border-radius:10px;padding:12px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.04);border:2px solid transparent;transition:all .2s}
+.question-card:hover{border-color:#e2e8f0}
+.question-card.answered{border-color:#bfdbfe;background:#f8faff}
+.question-header{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px}
+.question-header .q-num{width:24px;height:24px;border-radius:5px;background:#1a365d;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.question-header .q-text{flex:1;font-size:14px;font-weight:600;color:#1a1a2e;padding-top:2px}
+.question-header .q-icon{font-size:16px;flex-shrink:0}
+.options-group{display:flex;flex-direction:column;gap:3px;padding-left:32px}
+.option-item{display:flex;align-items:center;padding:6px 10px;border-radius:6px;cursor:pointer;transition:all .2s;user-select:none;border:1.5px solid transparent;font-size:12px}
+.option-item:hover{background:#f0f7ff;border-color:#dbeafe}
+.option-item input[type=\"radio\"]{display:none}
+.option-item .custom-radio{width:16px;height:16px;border:2px solid #d9d9d9;border-radius:50%;margin-right:8px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.option-item input:checked+.custom-radio{border-color:#2563eb;background:#2563eb}
+.option-item input:checked+.custom-radio::after{content:\"\";width:6px;height:6px;border-radius:50%;background:#fff}
+.option-item .option-text{font-size:12px;color:#333;flex:1}
+.option-item .option-score{font-size:11px;color:#888;font-weight:500}
+.option-item.selected{background:#eff6ff;border-color:#93c5fd}
+.option-item.selected .option-text{color:#1e4d6e;font-weight:500}
+.option-item.selected .option-score{color:#2563eb;font-weight:600}
+.input-group{display:flex;align-items:center;gap:8px;padding-left:32px;flex-wrap:wrap}
+.input-group label{font-size:12px;color:#555}
+.input-group input[type=\"number\"]{width:90px;padding:6px 8px;border:2px solid #d9d9d9;border-radius:6px;font-size:14px;outline:none;transition:border-color .2s}
+.input-group input[type=\"number\"]:focus{border-color:#2563eb}
+.input-group .input-score{font-size:13px;font-weight:600;color:#2563eb;min-width:50px;text-align:right}
+.input-group .input-hint{font-size:11px;color:#aaa}
+.bottom-bar{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid #e8edf2}
+.bottom-bar .progress-text{font-size:12px;color:#888}
+.bottom-bar .progress-text strong{color:#1a365d}
+.btn{padding:8px 20px;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:all .25s}
+.btn-primary{background:#2563eb;color:#fff}
+.btn-primary:hover{background:#1d4ed8;transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,.3)}
+.btn-primary:disabled{background:#93c5fd;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-secondary{background:#f1f5f9;color:#475569}
+.btn-secondary:hover{background:#e2e8f0}
+.btn-success{background:#16a34a;color:#fff}
+.btn-success:hover{background:#15803d}
+.btn-outline{background:transparent;color:#2563eb;border:2px solid #2563eb}
+.btn-outline:hover{background:#eff6ff}
+.result-hero{background:linear-gradient(135deg,#1a365d,#1e4d6e);border-radius:14px;padding:24px;text-align:center;color:#fff;margin-bottom:20px}
+.result-hero .score-number{font-size:48px;font-weight:800;line-height:1;margin:4px 0}
+.result-hero .score-label{font-size:13px;opacity:.8}
+.result-hero .score-level{display:inline-block;padding:4px 16px;border-radius:14px;font-size:12px;font-weight:500;margin-top:4px}
+.score-level.good{background:#16a34a}.score-level.mid{background:#eab308;color:#1a1a2e}.score-level.warn{background:#f97316}.score-level.bad{background:#ef4444}.score-level.severe{background:#dc2626}
+.score-detail-title{font-size:14px;font-weight:600;color:#1a365d;margin-bottom:10px}
+.score-table{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04);margin-bottom:18px}
+.score-row{display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid #f1f5f9}
+.score-row:last-child{border-bottom:none}
+.score-row .sr-index{width:22px;font-size:11px;color:#94a3b8;font-weight:500}
+.score-row .sr-icon{font-size:14px;margin-right:8px}
+.score-row .sr-name{flex:1;font-size:12px;color:#1a1a2e}
+.score-row .sr-score{font-size:12px;font-weight:600;color:#2563eb;min-width:24px;text-align:right}
+.score-row .sr-max{font-size:11px;color:#94a3b8;margin-left:2px}
+.score-row .sr-bar-bg{width:60px;height:4px;background:#e2e8f0;border-radius:2px;margin-left:10px;overflow:hidden}
+.score-row .sr-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#3b82f6,#2563eb);transition:width .6s ease}
+.empty-state{text-align:center;padding:40px 16px;color:#94a3b8}
+.empty-state .empty-icon{font-size:40px;margin-bottom:8px}
+.empty-state p{font-size:13px}
+.result-actions{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+@media(max-width:768px){
+.sidebar{transform:translateX(-100%)}
+.sidebar.open{transform:translateX(0)}
+.sidebar-overlay.show{display:block}
+.menu-toggle{display:flex}
+.main-content{margin-left:0;padding:12px;padding-top:52px}
+.options-group{padding-left:0;margin-top:2px}
+.input-group{padding-left:0}
+.result-hero .score-number{font-size:36px}
+.score-row .sr-bar-bg{width:40px}
+.bottom-bar{flex-direction:column;gap:8px;align-items:stretch;text-align:center}
+.question-card{padding:10px 12px}
+}
+</style>
 </head>
 <body>
-<button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">☰</button>
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-<!-- 侧边导航栏 -->
+<button class="menu-toggle" id="menuToggle" onclick="toggleS()">☰</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleS()"></div>
 <nav class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <span class="logo-icon">🏥</span>
-        <h2>康复功能<br>评定平台</h2>
-        <div class="sub-logo">Rehab Assessment</div>
-    </div>
-    <div class="sidebar-nav" id="sidebarNav"></div>
-    <div class="sidebar-footer">kfpd123-barthel v2.0</div>
+<div class="sidebar-header"><span class="logo-icon">🏥</span><h2>康复功能<br>评定平台</h2><div class="sub-logo" style="font-size:9px;opacity:.4;margin-top:1px">Rehab Assessment</div></div>
+<div class="sidebar-nav" id="sidebarNav"></div>
+<div class="sidebar-footer">kfpd123-barthel v3.0</div>
 </nav>
-
-<!-- 主内容区 -->
 <div class="main-content">
-    <div class="topbar">
-        <span class="page-title" id="topbarTitle">📋 选择评估量表</span>
-        <span class="page-status" id="topbarStatus">请从左侧选择</span>
-    </div>
-    <!-- 动态页面容器 -->
-    <div id="pageContainer"></div>
+<div class="topbar"><span class="page-title" id="topbarTitle">📋 选择评估量表</span><span class="page-status" id="topbarStatus">请从左侧选择</span></div>
+<div id="pageContainer"></div>
 </div>
-
 <script>
-// ================================================================
-// 评估量表数据
-// ================================================================
-const SCALES = {
-    barthel: {
-        id: 'barthel', chapter: 14, icon: '📋', name: '改良Barthel指数',
-        desc: '改良Barthel指数（Modified Barthel Index, MBI）采用5级评分制，更精细地评估日常生活自理能力。包含10项评估内容，总分0-100分。',
-        sections: [{ title: '评估项目（每项5级评分）', items: [
-            { icon:'🚽', text:'大便控制', opts:[{t:'1级：完全依赖（失禁或昏迷）',s:0},{t:'2级：较大依赖（偶尔失禁，<1次/周）',s:2},{t:'3级：中等依赖（需提示或帮助）',s:5},{t:'4级：较小依赖（可自行使用灌肠等）',s:8},{t:'5级：完全独立（能控制）',s:10}] },
-            { icon:'🚻', text:'小便控制', opts:[{t:'1级：完全依赖（失禁或昏迷）',s:0},{t:'2级：较大依赖（偶尔失禁，<1次/天）',s:2},{t:'3级：中等依赖（需提示或帮助）',s:5},{t:'4级：较小依赖（偶有 accidents）',s:8},{t:'5级：完全独立（能控制）',s:10}] },
-            { icon:'🧼', text:'修饰（洗脸、刷牙、梳头、刮脸）', opts:[{t:'1级：完全依赖',s:0},{t:'2级：较大依赖（需全程帮助）',s:1},{t:'3级：中等依赖（需部分帮助）',s:3},{t:'4级：较小依赖（需提醒或器具）',s:4},{t:'5级：完全独立',s:5}] },
-            { icon:'🚾', text:'如厕（拭净、整理衣裤、冲水）', opts:[{t:'1级：完全依赖',s:0},{t:'2级：较大依赖（需大量帮助）',s:2},{t:'3级：中等依赖（需部分帮助）',s:5},{t:'4级：较小依赖（需提醒或监督）',s:8},{t:'5级：完全独立',s:10}] },
-            { icon:'🍽️', text:'进食', opts:[{t:'1级：完全依赖（需喂食）',s:0},{t:'2级：较大依赖（需大量帮助）',s:2},{t:'3级：中等依赖（需部分帮助）',s:5},{t:'4级：较小依赖（需少量帮助）',s:8},{t:'5级：完全独立',s:10}] },
-            { icon:'🛏️', text:'转移（床→椅）', opts:[{t:'1级：完全依赖（不能坐）',s:0},{t:'2级：较大依赖（需2人帮助），能坐',s:3},{t:'3级：中等依赖（需1人大量帮助）',s:8},{t:'4级：较小依赖（需1人少量帮助或监督）',s:12},{t:'5级：完全独立',s:15}] },
-            { icon:'🚶', text:'步行（平地45米）', opts:[{t:'1级：不能步行',s:0},{t:'2级：较大依赖（轮椅上独立行动）',s:3},{t:'3级：中等依赖（需1人大量帮助行走）',s:8},{t:'4级：较小依赖（需1人少量帮助或监督）',s:12},{t:'5级：完全独立（可用辅助器具）',s:15}] },
-            { icon:'👔', text:'穿衣（系扣、拉链、穿鞋等）', opts:[{t:'1级：完全依赖',s:0},{t:'2级：较大依赖（需大量帮助）',s:2},{t:'3级：中等依赖（需一半帮助）',s:5},{t:'4级：较小依赖（需少量帮助或提醒）',s:8},{t:'5级：完全独立',s:10}] },
-            { icon:'🪜', text:'上下楼梯', opts:[{t:'1级：不能',s:0},{t:'2级：较大依赖（需大量帮助）',s:2},{t:'3级：中等依赖（需部分帮助）',s:5},{t:'4级：较小依赖（需监督或器具）',s:8},{t:'5级：完全独立',s:10}] },
-            { icon:'🛁', text:'洗澡', opts:[{t:'1级：完全依赖',s:0},{t:'2级：较大依赖（需大量帮助）',s:1},{t:'3级：中等依赖（需部分帮助）',s:3},{t:'4级：较小依赖（需提醒或监督）',s:4},{t:'5级：完全独立',s:5}] }
-        ]}],
-        calc: function(answers) {
-            let total = 0; let detail = []; let idx = 0;
-            this.sections[0].items.forEach((item,i) => {
-                idx++; let score = answers[idx] || 0;
-                total += score; detail.push({icon:item.icon, name:item.text, score, max:item.opts[item.opts.length-1].s});
-            });
-            let level,lvlClass;
-            if(total>=80){level='基本自理（轻度依赖）';lvlClass='good'}
-            else if(total>=60){level='中度依赖';lvlClass='mid'}
-            else if(total>=40){level='重度依赖';lvlClass='warn'}
-            else if(total>=20){level='极重度依赖';lvlClass='bad'}
-            else{level='完全依赖';lvlClass='severe'}
-            return {total, max:100, level, lvlClass, detail};
-        }
-    },
-    cog: {
-        id: 'cog', chapter: 5, icon: '🧠', name: '认知功能评定',
-        desc: '认知功能筛查，评估定向力、记忆力、注意力和执行功能等方面。',
-        sections: [
-            { title: '定向力', items: [
-                { icon:'📅', text:'时间定向：现在是哪一年？', opts:[{t:'错误',s:0},{t:'正确',s:1}] },
-                { icon:'📅', text:'时间定向：现在是几月份？', opts:[{t:'错误',s:0},{t:'正确',s:1}] },
-                { icon:'📅', text:'时间定向：今天是几号？', opts:[{t:'错误',s:0},{t:'正确',s:1}] },
-                { icon:'📍', text:'地点定向：现在在哪个城市？', opts:[{t:'错误',s:0},{t:'正确',s:1}] },
-                { icon:'📍', text:'地点定向：现在在哪个医院/场所？', opts:[{t:'错误',s:0},{t:'正确',s:1}] }
-            ]},
-            { title: '记忆力', items: [
-                { icon:'💭', text:'即刻记忆：说出3个词（皮球、国旗、树木）后请患者重复', opts:[{t:'0个',s:0},{t:'1个',s:1},{t:'2个',s:2},{t:'3个',s:3}] },
-                { icon:'💭', text:'延时回忆（3-5分钟后）：回忆刚才的3个词', opts:[{t:'0个',s:0},{t:'1个',s:1},{t:'2个',s:2},{t:'3个',s:3}] }
-            ]},
-            { title: '注意力与计算力', items: [
-                { icon:'🔢', text:'计算：100-7=?（连续减5次）', opts:[{t:'0个正确',s:0},{t:'1-2个正确',s:1},{t:'3-4个正确',s:2},{t:'全部正确',s:3}] }
-            ]},
-            { title: '语言与执行功能', items: [
-                { icon:'🗣️', text:'命名：出示手表、铅笔，请患者说出名称', opts:[{t:'0个正确',s:0},{t:'1个正确',s:1},{t:'2个正确',s:2}] },
-                { icon:'🔁', text:'复述：请复述"吃葡萄不吐葡萄皮"', opts:[{t:'不能',s:0},{t:'部分正确',s:1},{t:'完全正确',s:2}] },
-                { icon:'📝', text:'执行指令：请按顺序做"用右手拿纸→对折→放在腿上"', opts:[{t:'0步',s:0},{t:'1步',s:1},{t:'2步',s:2},{t:'3步',s:3}] }
-            ]}
-        ],
-        calc: function(answers) {
-            let total = 0; let detail = []; let idx = 0;
-            this.sections.forEach(s => {
-                s.items.forEach(item => {
-                    idx++; let score = answers[idx] || 0;
-                    total += score; detail.push({icon:item.icon, name:item.text, score, max:item.opts[item.opts.length-1].s});
-                });
-            });
-            let level,lvlClass;
-            if(total>=17){level='认知功能正常';lvlClass='good'}
-            else if(total>=13){level='轻度认知障碍';lvlClass='mid'}
-            else if(total>=8){level='中度认知障碍';lvlClass='warn'}
-            else{level='重度认知障碍';lvlClass='severe'}
-            return {total, max:20, level, lvlClass, detail};
-        }
-    },
-    speech: {
-        id: 'speech', chapter: 6, icon: '🗣️', name: '言语-语言功能评定',
-        desc: '言语和语言功能筛查，评估口语表达、理解、复述、命名等方面。',
-        sections: [{ title: '言语功能评估', items: [
-            { icon:'💬', text:'自发言语：患者能否自发表达意愿', opts:[{t:'完全不能',s:0},{t:'仅能说单词',s:1},{t:'能说短句(有语法错误)',s:2},{t:'基本正常',s:3}] },
-            { icon:'👂', text:'听理解：执行一步指令（如"请闭眼"）', opts:[{t:'不能',s:0},{t:'需重复才能执行',s:1},{t:'一次即能执行',s:2}] },
-            { icon:'🔁', text:'复述：复述"天安门"、"五星红旗"', opts:[{t:'不能',s:0},{t:'部分正确',s:1},{t:'完全正确',s:2}] },
-            { icon:'🏷️', text:'命名：命名常见物品（手机、钥匙、杯子）', opts:[{t:'0个',s:0},{t:'1个',s:1},{t:'2个',s:2},{t:'3个',s:3}] },
-            { icon:'📖', text:'阅读：朗读并理解简单句子', opts:[{t:'不能',s:0},{t:'能朗读不理解',s:1},{t:'能理解',s:2}] },
-            { icon:'✍️', text:'书写：书写姓名、地址', opts:[{t:'不能',s:0},{t:'可写部分',s:1},{t:'可完整书写',s:2}] },
-            { icon:'📞', text:'口语表达：描述图片内容或讲述事件', opts:[{t:'不能',s:0},{t:'需提示',s:1},{t:'基本独立但欠流利',s:2},{t:'流利准确',s:3}] }
-        ]}],
-        calc: function(answers) {
-            let total = 0; let detail = []; let idx = 0;
-            this.sections[0].items.forEach(item => {
-                idx++; let score = answers[idx] || 0;
-                total += score; detail.push({icon:item.icon, name:item.text, score, max:item.opts[item.opts.length-1].s});
-            });
-            let level,lvlClass;
-            if(total>=14){level='言语功能基本正常';lvlClass='good'}
-            else if(total>=9){level='轻度言语障碍';lvlClass='mid'}
-            else if(total>=4){level='中度言语障碍';lvlClass='warn'}
-            else{level='重度言语障碍';lvlClass='severe'}
-            return {total, max:17, level, lvlClass, detail};
-        }
-    },
-    sensory: {
-        id: 'sensory', chapter: 7, icon: '👆', name: '感觉功能评定',
-        desc: '感觉功能筛查，评估浅感觉、深感觉和复合感觉。',
-        sections: [
-            { title: '浅感觉', items: [
-                { icon:'🪡', text:'痛觉：用针尖轻刺皮肤，能否正确判断', opts:[{t:'消失',s:0},{t:'减退/过敏',s:1},{t:'正常',s:2}] },
-                { icon:'🌡️', text:'温度觉：用冷/热水管接触皮肤，能否区分', opts:[{t:'消失',s:0},{t:'减退/过敏',s:1},{t:'正常',s:2}] },
-                { icon:'🖐️', text:'触觉：用棉絮轻触皮肤，能否感知', opts:[{t:'消失',s:0},{t:'减退/过敏',s:1},{t:'正常',s:2}] }
-            ]},
-            { title: '深感觉', items: [
-                { icon:'🦶', text:'运动觉：被动活动手指/脚趾，能否判断方向', opts:[{t:'消失',s:0},{t:'减退',s:1},{t:'正常',s:2}] },
-                { icon:'📍', text:'位置觉：将肢体置于某位置，能否准确描述', opts:[{t:'消失',s:0},{t:'减退',s:1},{t:'正常',s:2}] },
-                { icon:'📳', text:'振动觉：用音叉置于骨突处，能否感知振动', opts:[{t:'消失',s:0},{t:'减退',s:1},{t:'正常',s:2}] }
-            ]},
-            { title: '复合感觉', items: [
-                { icon:'✏️', text:'两点辨别觉：指尖两点辨别阈值', opts:[{t:'>10mm/无法辨别',s:0},{t:'5-10mm',s:1},{t:'<5mm',s:2}] },
-                { icon:'🔑', text:'实体觉：闭眼摸物（钥匙、硬币、笔）并说出名称', opts:[{t:'0个',s:0},{t:'1-2个',s:1},{t:'3个',s:2}] },
-                { icon:'✍️', text:'图形觉：在皮肤上写数字，能否辨识', opts:[{t:'不能',s:0},{t:'部分正确',s:1},{t:'完全正确',s:2}] }
-            ]}
-        ],
-        calc: function(answers) {
-            let total = 0; let detail = []; let idx = 0;
-            this.sections.forEach(s => {
-                s.items.forEach(item => {
-                    idx++; let score = answers[idx] || 0;
-                    total += score; detail.push({icon:item.icon, name:item.text, score, max:item.opts[item.opts.length-1].s});
-                });
-            });
-            let level,lvlClass;
-            if(total>=15){level='感觉功能正常';lvlClass='good'}
-            else if(total>=10){level='轻度感觉障碍';lvlClass='mid'}
-            else if(total>=5){level='中度感觉障碍';lvlClass='warn'}
-            else{level='重度感觉障碍';lvlClass='severe'}
-            return {total, max:18, level, lvlClass, detail};
-        }
-    },
-    tone: {
-        id: 'tone', chapter: 8, icon: '🎯', name: '肌张力评定（改良Ashworth）',
-        desc: '改良Ashworth量表（MAS）用于评估肌张力增高的程度，适用于中枢神经系统损伤患者。',
-        sections: [{ title: '肌张力评定（改良Ashworth分级）', items: [
-            { icon:'💪', text:'肌张力总体评价', opts:[
-                {t:'0级：无肌张力增高',s:0},
-                {t:'1级：肌张力轻度增加（被动活动时有卡住感）',s:1},
-                {t:'1+级：肌张力轻度增加（有卡住感+轻微阻力）',s:2},
-                {t:'2级：肌张力明显增加（活动范围大部分有阻力）',s:3},
-                {t:'3级：肌张力严重增高（被动活动困难）',s:4},
-                {t:'4级：僵硬（屈伸均无法活动）',s:5}
-            ]}
-        ]}],
-        calc: function(answers) {
-            let total = answers[1] || 0;
-            let level,lvlClass;
-            if(total==0){level='无肌张力增高';lvlClass='good'}
-            else if(total<=2){level='轻度肌张力增高';lvlClass='mid'}
-            else if(total<=3){level='中度肌张力增高';lvlClass='warn'}
-            else{level='重度肌张力增高/僵硬';lvlClass='severe'}
-            return {total, max:5, level, lvlClass, detail:[{icon:'💪',name:'改良Ashworth分级',score:total,max:5}]};
-        }
-    },
-    mmt: {
-        id: 'mmt', chapter: 9, icon: '💪', name: '肌力评定（MMT）',
-        desc: '徒手肌力检查（Manual Muscle Testing, MMT），采用Lovett 6级分级法，评估主要肌群肌力。',
-        sections: [
-            { title: '上肢肌群', items: [
-                { icon:'💪', text:'肩关节屈曲（三角肌前束）', opts:[{t:'0级：无收缩',s:0},{t:'1级：轻微收缩',s:1},{t:'2级：去重力全范围',s:2},{t:'3级：抗重力全范围',s:3},{t:'4级：抗中等阻力',s:4},{t:'5级：正常肌力',s:5}] },
-                { icon:'💪', text:'肘关节屈曲（肱二头肌）', opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}] },
-                { icon:'💪', text:'肘关节伸展（肱三头肌）', opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}] },
-                { icon:'✊', text:'握力（指屈肌）', opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}] }
-            ]},
-            { title: '下肢肌群', items: [
-                { icon:'🦵', text:'髋关节屈曲（髂腰肌）', opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}] },
-                { icon:'🦵', text:'膝关节伸展（股四头肌）', opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}] },
-                { icon:'🦶', text:'踝关节背屈（胫前肌）', opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}] }
-            ]},
-            { title: '躯干肌群', items: [
-                { icon:'🧍', text:'腹肌（仰卧起坐）', opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}] }
-            ]}
-        ],
-        calc: function(answers) {
-            let total = 0; let detail = []; let count = 0; let idx = 0;
-            this.sections.forEach(s => {
-                s.items.forEach(item => {
-                    idx++; let score = answers[idx] || 0;
-                    total += score; count++;
-                    detail.push({icon:item.icon, name:item.text, score, max:5});
-                });
-            });
-            let avg = (total / count).toFixed(1);
-            let level,lvlClass;
-            if(avg>=4){level='肌力基本正常';lvlClass='good'}
-            else if(avg>=3){level='肌力中度减退';lvlClass='mid'}
-            else if(avg>=2){level='肌力明显减退';lvlClass='warn'}
-            else if(avg>=1){level='肌力重度减退';lvlClass='bad'}
-            else{level='完全瘫痪';lvlClass='severe'}
-            return {total, max:count*5, level:level+'(平均'+avg+'级)', lvlClass, detail};
-        }
-    },
-    rom: {
-        id: 'rom', chapter: 10, icon: '🦵', name: '关节活动度评定',
-        desc: '评估各主要关节的活动范围（Range of Motion, ROM），判断是否存在关节活动受限。',
-        sections: [{ title: '主要关节活动度', items: [
-            { icon:'🔄', text:'肩关节前屈（正常0-180°）', opts:[{t:'>150°（正常或轻度受限）',s:2},{t:'90-150°（中度受限）',s:1},{t:'<90°（严重受限）',s:0}] },
-            { icon:'🔄', text:'肩关节外展（正常0-180°）', opts:[{t:'>150°',s:2},{t:'90-150°',s:1},{t:'<90°',s:0}] },
-            { icon:'🔄', text:'肘关节屈伸（正常0-145°）', opts:[{t:'>120°',s:2},{t:'60-120°',s:1},{t:'<60°',s:0}] },
-            { icon:'🔄', text:'腕关节屈伸（正常0-150°）', opts:[{t:'>120°',s:2},{t:'60-120°',s:1},{t:'<60°',s:0}] },
-            { icon:'🔄', text:'髋关节屈曲（正常0-125°）', opts:[{t:'>100°',s:2},{t:'60-100°',s:1},{t:'<60°',s:0}] },
-            { icon:'🔄', text:'膝关节屈伸（正常0-135°）', opts:[{t:'>110°',s:2},{t:'60-110°',s:1},{t:'<60°',s:0}] },
-            { icon:'🔄', text:'踝关节背屈/跖屈（正常0-50°）', opts:[{t:'>40°',s:2},{t:'20-40°',s:1},{t:'<20°',s:0}] }
-        ]}],
-        calc: function(answers) {
-            let total = 0; let detail = []; let idx = 0;
-            this.sections[0].items.forEach(item => {
-                idx++; let score = answers[idx] || 0;
-                total += score; detail.push({icon:item.icon, name:item.text, score, max:2});
-            });
-            let level,lvlClass;
-            if(total>=12){level='关节活动度基本正常';lvlClass='good'}
-            else if(total>=8){level='轻度活动受限';lvlClass='mid'}
-            else if(total>=4){level='中度活动受限';lvlClass='warn'}
-            else{level='重度活动受限';lvlClass='severe'}
-            return {total, max:14, level, lvlClass, detail};
-        }
-    },
-    balance: {
-        id: 'balance', chapter: 11, icon: '⚖️', name: '协调与平衡功能评定',
-        desc: '评估协调功能和平衡能力，包括Berg平衡量表核心项目和协调功能测试。',
-        sections: [
-            { title: '平衡功能', items: [
-                { icon:'🧍', text:'坐→站起：能否独立从坐位站起', opts:[{t:'不能',s:0},{t:'需大量帮助',s:1},{t:'需少量帮助',s:2},{t:'独立完成',s:3}] },
-                { icon:'🧍', text:'无支撑站立：能否独立站立2分钟', opts:[{t:'不能',s:0},{t:'<30秒',s:1},{t:'30秒-2分钟',s:2},{t:'>2分钟',s:3}] },
-                { icon:'🪑', text:'无支撑坐位：能否坐2分钟（靠背不靠腿）', opts:[{t:'不能',s:0},{t:'需支撑',s:1},{t:'能坐<2分钟',s:2},{t:'能坐>2分钟',s:3}] },
-                { icon:'⬇️', text:'站→坐：能否安全坐下', opts:[{t:'不能',s:0},{t:'需帮助',s:1},{t:'需手扶',s:2},{t:'安全独立',s:3}] },
-                { icon:'🔄', text:'转身360°：能否平稳转身', opts:[{t:'不能',s:0},{t:'需提示',s:1},{t:'平稳但慢',s:2},{t:'平稳流畅',s:3}] },
-                { icon:'👀', text:'闭眼站立：闭眼站立10秒', opts:[{t:'不能',s:0},{t:'<3秒',s:1},{t:'3-10秒',s:2},{t:'>10秒',s:3}] },
-                { icon:'📏', text:'串联站立：双脚一前一后站立', opts:[{t:'不能',s:0},{t:'需扶持',s:1},{t:'能但<30秒',s:2},{t:'>30秒',s:3}] }
-            ]},
-            { title: '协调功能', items: [
-                { icon:'👈', text:'指鼻试验：食指从远距离指向鼻尖', opts:[{t:'无法完成',s:0},{t:'有明显震颤',s:1},{t:'轻度不准确',s:2},{t:'准确流畅',s:3}] },
-                { icon:'🦶', text:'跟膝胫试验：足跟沿对侧胫骨下滑', opts:[{t:'无法完成',s:0},{t:'明显不稳',s:1},{t:'轻度不稳',s:2},{t:'准确流畅',s:3}] },
-                { icon:'🔄', text:'快复轮替试验：快速交替翻转手掌', opts:[{t:'无法完成',s:0},{t:'明显节律异常',s:1},{t:'轻度异常',s:2},{t:'正常',s:3}] },
-                { icon:'👐', text:'指指试验：两食指相对', opts:[{t:'无法完成',s:0},{t:'明显偏差',s:1},{t:'轻度偏差',s:2},{t:'准确',s:3}] }
-            ]}
-        ],
-        calc: function(answers) {
-            let total = 0; let detail = []; let idx = 0;
-            this.sections.forEach(s => {
-                s.items.forEach(item => {
-                    idx++; let score = answers[idx] || 0;
-                    total += score; detail.push({icon:item.icon, name:item.text, score, max:item.opts[item.opts.length-1].s});
-                });
-            });
-            let level,lvlClass;
-            if(total>=30){level='协调与平衡功能正常';lvlClass='good'}
-            else if(total>=20){level='轻度功能障碍';lvlClass='mid'}
-            else if(total>=10){level='中度功能障碍';lvlClass='warn'}
-            else{level='重度功能障碍';lvlClass='severe'}
-            return {total, max:36, level, lvlClass, detail};
-        }
-    }
-};
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;')}
+
+// ===== 量表分组定义 =====
+const GROUPS = [
+{id:'PT',label:'PT 物理治疗',scales:['ueda_leg','fugl_leg','berg','asia']},
+{id:'OT',label:'OT 作业治疗',scales:['ueda_hand','fugl_arm','hand_func']},
+{id:'ST',label:'ST 言语治疗',scales:[]},
+{id:'通用',label:'通用量表',scales:['mmse','barthel','sensory','ashworth','mmt','rom']}
+];
+
+// ===== 量表数据 =====
+const SCALES = {};
+
+// ===== PT量表 =====
+
+SCALES.ueda_leg={id:'ueda_leg',group:'PT',icon:'🦵',name:'上田敏评估量表（下肢）',desc:'上田敏法12级评估 - 下肢运动功能分级。',
+sections:[{title:'下肢功能分级',items:[
+{icon:'🦵',text:'下肢功能等级（请选择最符合的级别）',opts:[
+{t:'0级：无任何运动',s:0},{t:'1级：出现联合反应',s:1},{t:'2级:出现随意共同运动(轻度)',s:2},{t:'3级:随意共同运动(充分)',s:3},{t:'4级:出现分离运动(轻度)',s:4},{t:'5级:分离运动(充分)',s:5},{t:'6级:协调运动接近正常',s:6}]}]}],
+calc:function(a){let s=a[1]||0;let lv='';let lc='good';if(s==0){lv='完全瘫痪';lc='severe'}else if(s<=2){lv='重度运动障碍';lc='bad'}else if(s<=4){lv='中度运动障碍';lc='warn'}else if(s==5){lv='轻度运动障碍';lc='mid'}else{lv='基本正常';lc='good'}return{total:s,max:6,level:lv+' ('+s+'级)',lvlClass:lc,detail:[{icon:'🦵',name:'下肢功能等级',score:s,max:6}]}}};
+
+SCALES.fugl_leg={id:'fugl_leg',group:'PT',icon:'🦵',name:'Fugl-Meyer下肢评估量表',desc:'Fugl-Meyer Assessment下肢部分，评估卒中后下肢运动功能。共17项，每项0-2分，总分34分。',
+sections:[
+{title:'下肢（14项，每项0-2分）',items:[
+{icon:'🦵',text:'1. 跟→膝→髋屈曲协同：髋屈曲',opts:[{t:'0分：不能完成',s:0},{t:'1分：部分完成',s:1},{t:'2分：充分完成',s:2}]},
+{icon:'🦵',text:'2. 跟→膝→髋屈曲协同：膝屈曲',opts:[{t:'0分：不能完成',s:0},{t:'1分：部分完成',s:1},{t:'2分：充分完成',s:2}]},
+{icon:'🦵',text:'3. 跟→膝→髋屈曲协同：踝背屈',opts:[{t:'0分：不能完成',s:0},{t:'1分：部分完成',s:1},{t:'2分：充分完成',s:2}]},
+{icon:'🦵',text:'4. 伸展协同：髋伸展',opts:[{t:'0分：不能完成',s:0},{t:'1分：部分完成',s:1},{t:'2分：充分完成',s:2}]},
+{icon:'🦵',text:'5. 伸展协同：髋内收',opts:[{t:'0分：不能完成',s:0},{t:'1分：部分完成',s:1},{t:'2分：充分完成',s:2}]},
+{icon:'🦵',text:'6. 伸展协同：膝伸展',opts:[{t:'0分：不能完成',s:0},{t:'1分：部分完成',s:1},{t:'2分：充分完成',s:2}]},
+{icon:'🦵',text:'7. 伸展协同：踝跖屈',opts:[{t:'0分：不能完成',s:0},{t:'1分：部分完成',s:1},{t:'2分：充分完成',s:2}]},
+{icon:'🦵',text:'8. 髋屈曲（坐位，膝屈曲90°）',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'🦵',text:'9. 膝屈曲（俯卧位，<100°）',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'🦵',text:'10. 踝背屈（坐位）',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'🦵',text:'11. 膝屈曲（俯卧位，>100°）',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'🦵',text:'12. 踝跖屈（坐位）',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'🦵',text:'13. 仰卧位→膝屈曲>90°',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'🦵',text:'14. 足跟离地踝跖屈（站立位）',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]}
+]},
+{title:'协调/速度（3项）',items:[
+{icon:'🔄',text:'15. 跟膝胫试验（速度）',opts:[{t:'0分：明显震颤',s:0},{t:'1分：轻度震颤',s:1},{t:'2分：无震颤',s:2}]},
+{icon:'🔄',text:'16. 跟膝胫试验（辨距）',opts:[{t:'0分：明显辨距障碍',s:0},{t:'1分：轻度辨距障碍',s:1},{t:'2分：无辨距障碍',s:2}]},
+{icon:'⏱️',text:'17. 速度（健侧5次 vs 患侧5次）',opts:[{t:'0分：>健侧6秒',s:0},{t:'1分：慢2-5秒',s:1},{t:'2分：<2秒差异',s:2}]}
+]}],
+calc:function(a){let t=0,d=[];let idx=0;this.sections.forEach(s=>{s.items.forEach(it=>{idx++;let sc=a[idx]||0;t+=sc;d.push({icon:it.icon,name:it.text,score:sc,max:2})})});let lv,lc;if(t>=30){lv='运动功能良好';lc='good'}else if(t>=22){lv='中度运动障碍';lc='mid'}else if(t>=12){lv='重度运动障碍';lc='warn'}else{lv='极重度运动障碍';lc='severe'}return{total:t,max:34,level:lv,lvlClass:lc,detail:d}}};
+
+SCALES.berg={id:'berg',group:'PT',icon:'⚖️',name:'Berg平衡量表',desc:'Berg Balance Scale (BBS) 评估平衡功能。共14项，每项0-4分，总分56分。分值越高平衡功能越好。',
+sections:[{title:'平衡功能评估（14项）',items:[
+{icon:'🧍',text:'1. 坐→站起',opts:[{t:'0分：需大量帮助',s:0},{t:'1分：需中度帮助',s:1},{t:'2分：需少量帮助',s:2},{t:'3分：需手扶',s:3},{t:'4分：不需手扶独立完成',s:4}]},
+{icon:'🧍',text:'2. 无支撑站立（2分钟）',opts:[{t:'0分：不能站立30秒',s:0},{t:'1分：需多次尝试',s:1},{t:'2分：能站30秒',s:2},{t:'3分：能站2分钟需监督',s:3},{t:'4分：安全站立2分钟',s:4}]},
+{icon:'🪑',text:'3. 无支撑坐位（2分钟）',opts:[{t:'0分：不能坐30秒',s:0},{t:'1分：能坐30秒',s:1},{t:'2分：能坐2分钟需监督',s:2},{t:'3分：能坐2分钟但需背靠',s:3},{t:'4分：安全坐2分钟',s:4}]},
+{icon:'⬇️',text:'4. 站→坐',opts:[{t:'0分：不能安全坐下',s:0},{t:'1分：需4次以上调整',s:1},{t:'2分：需手扶控制',s:2},{t:'3分：用手扶腿控制下落',s:3},{t:'4分：安全平稳坐下',s:4}]},
+{icon:'🔄',text:'5. 转移（床→椅）',opts:[{t:'0分：需2人帮助',s:0},{t:'1分：需1人大量帮助',s:1},{t:'2分：需1人少量帮助',s:2},{t:'3分：需口头提示',s:3},{t:'4分：独立安全转移',s:4}]},
+{icon:'👀',text:'6. 闭眼站立（10秒）',opts:[{t:'0分：不能站3秒',s:0},{t:'1分：睁眼能站3秒',s:1},{t:'2分：闭眼能站3秒',s:2},{t:'3分：闭眼站3-10秒',s:3},{t:'4分：安全站10秒',s:4}]},
+{icon:'🦶',text:'7. 双脚并拢站立',opts:[{t:'0分：不能并拢',s:0},{t:'1分：需帮助才能并拢',s:1},{t:'2分：能并拢站1分钟需监督',s:2},{t:'3分：自主并拢站1分钟',s:3},{t:'4分：安全并拢站1分钟',s:4}]},
+{icon:'🙋',text:'8. 上肢前伸（前屈90°、伸臂）',opts:[{t:'0分：前伸<5cm',s:0},{t:'1分：前伸5-12cm',s:1},{t:'2分：前伸12-20cm',s:2},{t:'3分：前伸>20cm需监督',s:3},{t:'4分：前伸>25cm安全',s:4}]},
+{icon:'📥',text:'9. 从地面拾物',opts:[{t:'0分：不能尝试',s:0},{t:'1分：尝试但需帮助',s:1},{t:'2分：需监督才能完成',s:2},{t:'3分：能完成但需口头提示',s:3},{t:'4分：安全独立完成',s:4}]},
+{icon:'👀',text:'10. 转身向后看（左+右）',opts:[{t:'0分：不能转身',s:0},{t:'1分：能侧身不能向后',s:1},{t:'2分：向后转但重心不稳',s:2},{t:'3分：转身良好需监督',s:3},{t:'4分：左右转身均良好',s:4}]},
+{icon:'🔄',text:'11. 转身360°',opts:[{t:'0分：不能完成',s:0},{t:'1分：需口头提示',s:1},{t:'2分：平稳但慢',s:2},{t:'3分：一侧快速一侧慢',s:3},{t:'4分：4秒内安全完成',s:4}]},
+{icon:'🪜',text:'12. 交替踏台阶（各4次）',opts:[{t:'0分：不能尝试',s:0},{t:'1分：需帮助，<2次',s:1},{t:'2分：需少量帮助，4次',s:2},{t:'3分：无需帮助但慢',s:3},{t:'4分：20秒内完成8次',s:4}]},
+{icon:'📏',text:'13. 串联站立（足尖对足跟）',opts:[{t:'0分：不能',s:0},{t:'1分：能迈步但需帮助',s:1},{t:'2分：能维持串联姿势',s:2},{t:'3分：能站30秒',s:3},{t:'4分：能站30秒以上',s:4}]},
+{icon:'🦶',text:'14. 单腿站立',opts:[{t:'0分：不能',s:0},{t:'1分：尝试但抬脚即跌',s:1},{t:'2分：抬脚站3秒',s:2},{t:'3分：抬脚站3-10秒',s:3},{t:'4分：抬脚站>10秒',s:4}]}
+]}],
+calc:function(a){let t=0,d=[];let idx=0;this.sections[0].items.forEach(it=>{idx++;let sc=a[idx]||0;t+=sc;d.push({icon:it.icon,name:it.text,score:sc,max:4})});let lv,lc;if(t>=46){lv='平衡功能良好';lc='good'}else if(t>=34){lv='中等平衡能力（跌倒风险中）';lc='mid'}else if(t>=20){lv='平衡功能差（跌倒风险高）';lc='warn'}else{lv='平衡功能严重受损';lc='severe'}return{total:t,max:56,level:lv,lvlClass:lc,detail:d}}};
+
+SCALES.asia={id:'asia',group:'PT',icon:'🩺',name:'ASIA评估量表',desc:'ASIA脊髓损伤神经学分类国际标准。评估10对关键肌（运动评分）和28个皮节（感觉评分）。',
+sections:[
+{title:'运动评分（10对关键肌，每对0-5分，总分100）',items:[
+{icon:'💪',text:'C5 肘屈肌群（肱二头肌）',opts:[{t:'0级：无收缩',s:0},{t:'1级：轻微收缩',s:1},{t:'2级：全范围去重力',s:2},{t:'3级：抗重力全范围',s:3},{t:'4级：抗中等阻力',s:4},{t:'5级：正常',s:5}]},
+{icon:'💪',text:'C6 腕伸肌群（桡侧伸腕肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]},
+{icon:'💪',text:'C7 肘伸肌群（肱三头肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]},
+{icon:'💪',text:'C8 指屈肌群（中指深屈肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]},
+{icon:'💪',text:'T1 指外展肌群（小指外展肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]},
+{icon:'🦵',text:'L2 髋屈肌群（髂腰肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]},
+{icon:'🦵',text:'L3 膝伸肌群（股四头肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]},
+{icon:'🦶',text:'L4 踝背屈肌群（胫前肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]},
+{icon:'🦶',text:'L5 长趾伸肌（𧿹长伸肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]},
+{icon:'🦶',text:'S1 踝跖屈肌群（腓肠肌、比目鱼肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]}
+]},
+{title:'感觉评分（2分/皮节，选典型区域测试）',items:[
+{icon:'🪡',text:'轻触觉（总体评分）',opts:[{t:'0分：完全消失',s:0},{t:'1分：部分减退',s:1},{t:'2分：正常',s:2}]},
+{icon:'📍',text:'针刺觉（痛觉，总体评分）',opts:[{t:'0分：完全消失',s:0},{t:'1分：部分减退',s:1},{t:'2分：正常',s:2}]}
+]},
+{title:'ASIA损伤分级（AIS）',items:[
+{icon:'📊',text:'ASIA损伤分级',opts:[{t:'A级：完全性损伤（S4-5无运动/感觉）',s:0},{t:'B级：不完全性（S4-5有感觉，无运动）',s:1},{t:'C级：不完全性（运动功能保留，半数关键肌<3级）',s:2},{t:'D级：不完全性（运动功能保留，半数关键肌≥3级）',s:3},{t:'E级：正常',s:4}]}
+]}],
+calc:function(a){let t=0,d=[];let idx=0;this.sections.forEach(s=>{s.items.forEach(it=>{idx++;let sc=a[idx]||0;t+=sc;d.push({icon:it.icon,name:it.text,score:sc,max:idx<=10?5:idx<=12?2:4})})});let kin=t-(a[11]||0)-(a[12]||0)-(a[13]||0);let lv,lc;if((a[13]||0)>=4){lv='AIS E级（正常）';lc='good'}else if(kin>=50){lv='运动功能良好';lc='good'}else if(kin>=30){lv='中度运动障碍';lc='mid'}else if(kin>=10){lv='重度运动障碍';lc='warn'}else{lv='极重度运动障碍';lc='severe'}return{total:t,max:64,level:lv,lvlClass:lc,detail:d}}};
+
+// ===== OT量表 =====
+
+SCALES.ueda_hand={id:'ueda_hand',group:'OT',icon:'🤚',name:'上田敏评估量表（上肢、手）',desc:'上田敏法12级评估 - 上肢及手运动功能分级。',
+sections:[
+{title:'上肢功能分级',items:[
+{icon:'💪',text:'上肢功能等级',opts:[
+{t:'0级：无任何运动',s:0},{t:'1级：出现联合反应',s:1},{t:'2级:出现随意共同运动(轻度)',s:2},{t:'3级:随意共同运动(充分)',s:3},{t:'4级:出现分离运动(轻度)',s:4},{t:'5级:分离运动(充分)',s:5},{t:'6级:协调运动接近正常',s:6}]}
+]},
+{title:'手功能分级',items:[
+{icon:'✋',text:'手功能等级',opts:[
+{t:'0级：无任何运动',s:0},{t:'1级：出现联合屈指',s:1},{t:'2级:可出现勾状抓握(轻度)',s:2},{t:'3级:勾状抓握(充分)',s:3},{t:'4级:出现对指(不完全)',s:4},{t:'5级:对指(充分)',s:5},{t:'6级:抓握接近正常',s:6}]}
+]}],
+calc:function(a){let s=(a[1]||0)+(a[2]||0);let lv,lc;if(s==0){lv='完全瘫痪';lc='severe'}else if(s<=3){lv='重度功能障碍';lc='bad'}else if(s<=6){lv='中度功能障碍';lc='warn'}else if(s<=9){lv='轻度功能障碍';lc='mid'}else{lv='功能接近正常';lc='good'}return{total:s,max:12,level:lv+' (总分'+s+')',lvlClass:lc,detail:[{icon:'💪',name:'上肢等级',score:a[1]||0,max:6},{icon:'✋',name:'手等级',score:a[2]||0,max:6}]}}};
+
+SCALES.fugl_arm={id:'fugl_arm',group:'OT',icon:'💪',name:'Fugl-Meyer（上肢、手）评估量表',desc:'Fugl-Meyer Assessment上肢+手部分。共33项，每项0-2分，总分66分。',
+sections:[
+{title:'上肢（18项）',items:[
+{icon:'💪',text:'1. 肩反射活动',opts:[{t:'0分：无反射',s:0},{t:'1分：反射减弱/亢进',s:1},{t:'2分：正常',s:2}]},
+{icon:'💪',text:'2. 屈肌协同：肩后缩、上提',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'💪',text:'3. 屈肌协同：肩外展≥90°',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'💪',text:'4. 屈肌协同：肩外旋',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'💪',text:'5. 屈肌协同：肘屈曲',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'💪',text:'6. 屈肌协同：前臂旋后',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'💪',text:'7. 伸肌协同：肩内收内旋',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'💪',text:'8. 伸肌协同：肘伸展',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'💪',text:'9. 伸肌协同：前臂旋前',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'💪',text:'10. 手→腰骶部',opts:[{t:'0分：不能',s:0},{t:'1分：需帮助',s:1},{t:'2分：独立完成',s:2}]},
+{icon:'💪',text:'11. 肩屈曲90°（肘伸直）',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'💪',text:'12. 前臂旋前旋后（肩0°，肘90°）',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'💪',text:'13. 肩外展0-90°（肘伸直）',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'💪',text:'14. 肩前屈90-180°',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'💪',text:'15. 前臂旋前旋后（肩屈曲30-90°、肘伸直）',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'💪',text:'16. 正常反射活动（肱二、三头肌，桡骨膜反射）',opts:[{t:'0分：2-3个反射亢进',s:0},{t:'1分：1个反射亢进',s:1},{t:'2分：无反射亢进',s:2}]},
+{icon:'💪',text:'17. 肩屈曲0-30°（肘伸直0°）',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'💪',text:'18. 前臂旋前（肘伸直）',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]}
+]},
+{title:'腕（5项）',items:[
+{icon:'🖐️',text:'19. 腕背屈（肘屈90°）',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'🖐️',text:'20. 腕屈伸交替（肘屈90°）',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'🖐️',text:'21. 腕背屈（肘伸直0°）',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'🖐️',text:'22. 腕屈伸交替（肘伸直0°）',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'🖐️',text:'23. 腕环转',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]}
+]},
+{title:'手（7项）',items:[
+{icon:'🤏',text:'24. 手指共同屈曲',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'🤏',text:'25. 手指共同伸展',opts:[{t:'0分：不能',s:0},{t:'1分：部分',s:1},{t:'2分：充分',s:2}]},
+{icon:'🤏',text:'26. 勾状抓握（掌指伸、指间屈）',opts:[{t:'0分：不能',s:0},{t:'1分：能捏不能抗阻力',s:1},{t:'2分：能捏持抗阻力',s:2}]},
+{icon:'🤏',text:'27. 对指（拇指→食指尖）',opts:[{t:'0分：不能',s:0},{t:'1分：能对但不能捏',s:1},{t:'2分：能对捏',s:2}]},
+{icon:'🤏',text:'28. 圆柱抓握（握杯子）',opts:[{t:'0分：不能',s:0},{t:'1分：能握不能抗阻力',s:1},{t:'2分：能握持抗阻力',s:2}]},
+{icon:'🤏',text:'29. 球形抓握（握球）',opts:[{t:'0分：不能',s:0},{t:'1分：能握不能抗阻力',s:1},{t:'2分：能握持抗阻力',s:2}]},
+{icon:'🤏',text:'30. 协调/速度（鼻尖→膝5次）',opts:[{t:'0分：明显震颤',s:0},{t:'1分：轻度震颤',s:1},{t:'2分：<健侧2秒',s:2}]}
+]},
+{title:'协调/速度（3项）',items:[
+{icon:'🔄',text:'31. 指鼻试验（震颤）',opts:[{t:'0分：明显震颤',s:0},{t:'1分：轻度震颤',s:1},{t:'2分：无震颤',s:2}]},
+{icon:'🔄',text:'32. 指鼻试验（辨距障碍）',opts:[{t:'0分：明显辨距障碍',s:0},{t:'1分：轻度辨距障碍',s:1},{t:'2分：无辨距障碍',s:2}]},
+{icon:'⏱️',text:'33. 速度（健侧5次 vs 患侧5次）',opts:[{t:'0分：>健侧6秒',s:0},{t:'1分：慢2-5秒',s:1},{t:'2分：<2秒差异',s:2}]}
+]}],
+calc:function(a){let t=0,d=[];let idx=0;this.sections.forEach(s=>{s.items.forEach(it=>{idx++;let sc=a[idx]||0;t+=sc;d.push({icon:it.icon,name:it.text,score:sc,max:2})})});let lv,lc;if(t>=56){lv='上肢功能良好';lc='good'}else if(t>=40){lv='中度功能障碍';lc='mid'}else if(t>=22){lv='重度功能障碍';lc='warn'}else{lv='极重度功能障碍';lc='severe'}return{total:t,max:66,level:lv,lvlClass:lc,detail:d}}};
+
+SCALES.hand_func={id:'hand_func',group:'OT',icon:'✋',name:'实用手、辅助手、废用手评估',desc:'评估患侧手在日常生活中的实用功能。分为实用手、辅助手、废用手三个等级。',
+sections:[{title:'手功能评估',items:[
+{icon:'✋',text:'1. 能否用患手拿稳杯子',opts:[{t:'0分：完全不能',s:0},{t:'1分：能但不能用',s:1},{t:'2分：能拿稳',s:2}]},
+{icon:'✋',text:'2. 能否用患手写字/画线',opts:[{t:'0分：完全不能',s:0},{t:'1分：能画线不工整',s:1},{t:'2分：能写字',s:2}]},
+{icon:'✋',text:'3. 能否用患手使用筷子/勺子',opts:[{t:'0分：完全不能',s:0},{t:'1分：能但不熟练',s:1},{t:'2分：能正常使用',s:2}]},
+{icon:'✋',text:'4. 能否用患手系扣子/拉拉链',opts:[{t:'0分：完全不能',s:0},{t:'1分：需健手帮助',s:1},{t:'2分：独立完成',s:2}]},
+{icon:'✋',text:'5. 能否用患手拧毛巾',opts:[{t:'0分：完全不能',s:0},{t:'1分：能但无力',s:1},{t:'2分：能拧干',s:2}]},
+{icon:'✋',text:'6. 能否用患手开关门',opts:[{t:'0分：完全不能',s:0},{t:'1分：能但不灵活',s:1},{t:'2分：能正常开关',s:2}]},
+{icon:'✋',text:'7. 健手工作时患手能否辅助固定物体',opts:[{t:'0分：完全不能',s:0},{t:'1分：偶尔能',s:1},{t:'2分：能稳定辅助',s:2}]},
+{icon:'✋',text:'8. 能否用患手提轻物（<2kg）',opts:[{t:'0分：完全不能',s:0},{t:'1分：能但不持久',s:1},{t:'2分：能提起并维持',s:2}]}
+]}],
+calc:function(a){let t=0;let idx=0;this.sections[0].items.forEach(it=>{idx++;t+=a[idx]||0});let lv,lc;let pct=t/16*100;if(pct>=75){lv='实用手（日常生活可使用）';lc='good'}else if(pct>=40){lv='辅助手（可辅助健手完成活动）';lc='mid'}else{lv='废用手（基本无实用功能）';lc='severe'}return{total:t,max:16,level:lv,lvlClass:lc,detail:[{icon:'✋',name:'手功能总分',score:t,max:16}]}}};
+
+// ===== 通用量表 =====
+
+SCALES.mmse={id:'mmse',group:'通用',icon:'🧠',name:'MMSE（认知功能筛查）',desc:'简明精神状态检查表（MMSE）。共11项30分，用于认知功能筛查。',
+sections:[
+{title:'定向力（10分）',items:[
+{icon:'📅',text:'1. 现在是哪年？哪季？哪月？几号？星期几？',opts:[{t:'0-1个正确',s:0},{t:'2个正确',s:1},{t:'3个正确',s:2},{t:'4个正确',s:3},{t:'5个都正确',s:5}]},
+{icon:'📍',text:'2. 现在在哪个省？市？区/县？医院/地址？楼层？',opts:[{t:'0-1个正确',s:0},{t:'2个正确',s:1},{t:'3个正确',s:2},{t:'4个正确',s:3},{t:'5个都正确',s:5}]}
+]},
+{title:'记忆力（6分）',items:[
+{icon:'💭',text:'3. 即刻记忆：说3个词（皮球、国旗、树木），复述',opts:[{t:'0个',s:0},{t:'1个',s:1},{t:'2个',s:2},{t:'3个',s:3}]},
+{icon:'💭',text:'4. 延时回忆（3-5分钟后）：回忆刚才3个词',opts:[{t:'0个',s:0},{t:'1个',s:1},{t:'2个',s:2},{t:'3个',s:3}]}
+]},
+{title:'注意力与计算力（5分）',items:[
+{icon:'🔢',text:'5. 100-7连续减5次',opts:[{t:'0个正确',s:0},{t:'1个',s:1},{t:'2个',s:2},{t:'3个',s:3},{t:'4个',s:4},{t:'5个全对',s:5}]}
+]},
+{title:'语言与执行功能（9分）',items:[
+{icon:'🏷️',text:'6. 命名（手表、铅笔）',opts:[{t:'0个',s:0},{t:'1个',s:1},{t:'2个',s:2}]},
+{icon:'🔁',text:'7. 复述"吃葡萄不吐葡萄皮"',opts:[{t:'不能',s:0},{t:'部分',s:1},{t:'完全正确',s:2}]},
+{icon:'📝',text:'8. 执行3步指令（右手拿纸→对折→放腿上）',opts:[{t:'0步',s:0},{t:'1步',s:1},{t:'2步',s:2},{t:'3步',s:3}]},
+{icon:'📖',text:'9. 阅读并执行"请闭上您的眼睛"',opts:[{t:'不能',s:0},{t:'能执行',s:1}]},
+{icon:'✍️',text:'10. 写一句完整的句子',opts:[{t:'不能',s:0},{t:'有主谓宾',s:1}]},
+{icon:'🎨',text:'11. 临摹交叉五边形',opts:[{t:'不能',s:0},{t:'能画出交叉',s:1}]}
+]}],
+calc:function(a){let t=0,d=[];let idx=0;this.sections.forEach(s=>{s.items.forEach(it=>{idx++;let sc=a[idx]||0;t+=sc;d.push({icon:it.icon,name:it.text,score:sc,max:it.opts[it.opts.length-1].s})})});let lv,lc;if(t>=27){lv='认知功能正常';lc='good'}else if(t>=21){lv='轻度认知障碍';lc='mid'}else if(t>=10){lv='中度认知障碍';lc='warn'}else{lv='重度认知障碍';lc='severe'}return{total:t,max:30,level:lv,lvlClass:lc,detail:d}}};
+
+SCALES.barthel={id:'barthel',group:'通用',icon:'📋',name:'改良Barthel指数（MBI）',desc:'改良Barthel指数（MBI）5级评分制，评估日常生活自理能力。10项，总分100分。',
+sections:[{title:'评估项目',items:[
+{icon:'🚽',text:'1. 大便控制',opts:[{t:'1级：完全依赖',s:0},{t:'2级：较大依赖（<1次/周失禁）',s:2},{t:'3级：中等依赖',s:5},{t:'4级：较小依赖',s:8},{t:'5级：完全独立',s:10}]},
+{icon:'🚻',text:'2. 小便控制',opts:[{t:'1级：完全依赖',s:0},{t:'2级：较大依赖（<1次/天失禁）',s:2},{t:'3级：中等依赖',s:5},{t:'4级：较小依赖',s:8},{t:'5级：完全独立',s:10}]},
+{icon:'🧼',text:'3. 修饰',opts:[{t:'1级：完全依赖',s:0},{t:'2级：较大依赖',s:1},{t:'3级：中等依赖',s:3},{t:'4级：较小依赖',s:4},{t:'5级：完全独立',s:5}]},
+{icon:'🚾',text:'4. 如厕',opts:[{t:'1级：完全依赖',s:0},{t:'2级：较大依赖',s:2},{t:'3级：中等依赖',s:5},{t:'4级：较小依赖',s:8},{t:'5级：完全独立',s:10}]},
+{icon:'🍽️',text:'5. 进食',opts:[{t:'1级：完全依赖',s:0},{t:'2级：较大依赖',s:2},{t:'3级：中等依赖',s:5},{t:'4级：较小依赖',s:8},{t:'5级：完全独立',s:10}]},
+{icon:'🛏️',text:'6. 转移（床→椅）',opts:[{t:'1级：完全依赖',s:0},{t:'2级：较大依赖',s:3},{t:'3级：中等依赖',s:8},{t:'4级：较小依赖',s:12},{t:'5级：完全独立',s:15}]},
+{icon:'🚶',text:'7. 步行（平地45米）',opts:[{t:'1级：不能步行',s:0},{t:'2级：较大依赖',s:3},{t:'3级：中等依赖',s:8},{t:'4级：较小依赖',s:12},{t:'5级：完全独立',s:15}]},
+{icon:'👔',text:'8. 穿衣',opts:[{t:'1级：完全依赖',s:0},{t:'2级：较大依赖',s:2},{t:'3级：中等依赖',s:5},{t:'4级：较小依赖',s:8},{t:'5级：完全独立',s:10}]},
+{icon:'🪜',text:'9. 上下楼梯',opts:[{t:'1级：不能',s:0},{t:'2级：较大依赖',s:2},{t:'3级：中等依赖',s:5},{t:'4级：较小依赖',s:8},{t:'5级：完全独立',s:10}]},
+{icon:'🛁',text:'10. 洗澡',opts:[{t:'1级：完全依赖',s:0},{t:'2级：较大依赖',s:1},{t:'3级：中等依赖',s:3},{t:'4级：较小依赖',s:4},{t:'5级：完全独立',s:5}]}
+]}],
+calc:function(a){let t=0,d=[];let idx=0;this.sections[0].items.forEach(it=>{idx++;let sc=a[idx]||0;t+=sc;d.push({icon:it.icon,name:it.text,score:sc,max:it.opts[it.opts.length-1].s})});let lv,lc;if(t>=80){lv='基本自理';lc='good'}else if(t>=60){lv='中度依赖';lc='mid'}else if(t>=40){lv='重度依赖';lc='warn'}else if(t>=20){lv='极重度依赖';lc='bad'}else{lv='完全依赖';lc='severe'}return{total:t,max:100,level:lv,lvlClass:lc,detail:d}}};
+
+SCALES.sensory={id:'sensory',group:'通用',icon:'👆',name:'感觉功能评定',desc:'感觉功能筛查，评估浅感觉、深感觉和复合感觉。',
+sections:[
+{title:'浅感觉',items:[
+{icon:'🪡',text:'1. 痛觉',opts:[{t:'消失',s:0},{t:'减退/过敏',s:1},{t:'正常',s:2}]},
+{icon:'🌡️',text:'2. 温度觉',opts:[{t:'消失',s:0},{t:'减退/过敏',s:1},{t:'正常',s:2}]},
+{icon:'🖐️',text:'3. 触觉',opts:[{t:'消失',s:0},{t:'减退/过敏',s:1},{t:'正常',s:2}]}
+]},{title:'深感觉',items:[
+{icon:'🦶',text:'4. 运动觉',opts:[{t:'消失',s:0},{t:'减退',s:1},{t:'正常',s:2}]},
+{icon:'📍',text:'5. 位置觉',opts:[{t:'消失',s:0},{t:'减退',s:1},{t:'正常',s:2}]},
+{icon:'📳',text:'6. 振动觉',opts:[{t:'消失',s:0},{t:'减退',s:1},{t:'正常',s:2}]}
+]},{title:'复合感觉',items:[
+{icon:'✏️',text:'7. 两点辨别觉',opts:[{t:'>10mm/无法',s:0},{t:'5-10mm',s:1},{t:'<5mm',s:2}]},
+{icon:'🔑',text:'8. 实体觉',opts:[{t:'0个',s:0},{t:'1-2个',s:1},{t:'3个',s:2}]},
+{icon:'✍️',text:'9. 图形觉',opts:[{t:'不能',s:0},{t:'部分',s:1},{t:'正常',s:2}]}
+]}],
+calc:function(a){let t=0,d=[];let idx=0;this.sections.forEach(s=>{s.items.forEach(it=>{idx++;let sc=a[idx]||0;t+=sc;d.push({icon:it.icon,name:it.text,score:sc,max:2})})});let lv,lc;if(t>=15){lv='感觉功能正常';lc='good'}else if(t>=10){lv='轻度感觉障碍';lc='mid'}else if(t>=5){lv='中度感觉障碍';lc='warn'}else{lv='重度感觉障碍';lc='severe'}return{total:t,max:18,level:lv,lvlClass:lc,detail:d}}};
+
+SCALES.ashworth={id:'ashworth',group:'通用',icon:'🎯',name:'改良Ashworth评估量表',desc:'改良Ashworth量表（Modified Ashworth Scale, MAS），评估肌张力增高程度。0-4级（含1+级）。',
+sections:[{title:'肌张力评定',items:[
+{icon:'💪',text:'肌张力总体评价',opts:[
+{t:'0级：无肌张力增高',s:0},{t:'1级：肌张力轻度增加（被动活动有卡住-释放感）',s:1},{t:'1+级：肌张力轻度增加（卡住感+轻微阻力）',s:2},{t:'2级：肌张力明显增加（全范围大部分有阻力）',s:3},{t:'3级：肌张力严重增高（被动活动困难）',s:4},{t:'4级：僵硬（屈伸均无法活动）',s:5}]}
+]}],
+calc:function(a){let t=a[1]||0;let lv,lc;if(t==0){lv='无肌张力增高';lc='good'}else if(t<=2){lv='轻度肌张力增高';lc='mid'}else if(t<=3){lv='中度肌张力增高';lc='warn'}else{lv='重度肌张力增高/僵硬';lc='severe'}return{total:t,max:5,level:lv,lvlClass:lc,detail:[{icon:'💪',name:'MAS分级',score:t,max:5}]}}};
+
+SCALES.mmt={id:'mmt',group:'通用',icon:'💪',name:'MMT评估量表',desc:'徒手肌力检查（MMT），Lovett 6级分级法。评估主要肌群肌力。',
+sections:[
+{title:'上肢肌群',items:[
+{icon:'💪',text:'1. 肩关节屈曲（三角肌前束）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]},
+{icon:'💪',text:'2. 肘关节屈曲（肱二头肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]},
+{icon:'💪',text:'3. 肘关节伸展（肱三头肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]},
+{icon:'✊',text:'4. 握力（指屈肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]}
+]},{title:'下肢肌群',items:[
+{icon:'🦵',text:'5. 髋关节屈曲（髂腰肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]},
+{icon:'🦵',text:'6. 膝关节伸展（股四头肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]},
+{icon:'🦶',text:'7. 踝关节背屈（胫前肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]}
+]},{title:'躯干肌群',items:[
+{icon:'🧍',text:'8. 腹肌（仰卧起坐动作）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]}
+]}],
+calc:function(a){let t=0,d=[];let idx=0;this.sections.forEach(s=>{s.items.forEach(it=>{idx++;let sc=a[idx]||0;t+=sc;d.push({icon:it.icon,name:it.text,score:sc,max:5})})});let avg=(t/8).toFixed(1);let lv,lc;if(avg>=4){lv='肌力基本正常';lc='good'}else if(avg>=3){lv='肌力中度减退';lc='mid'}else if(avg>=2){lv='肌力明显减退';lc='warn'}else if(avg>=1){lv='肌力重度减退';lc='bad'}else{lv='完全瘫痪';lc='severe'}return{total:t,max:40,level:lv+'(平均'+avg+'级)',lvlClass:lc,detail:d}}};
+
+// ===== ROM：特殊处理——填空题自动评分 =====
+SCALES.rom={
+id:'rom',group:'通用',icon:'🦵',name:'关节活动度评定',desc:'评估主要关节活动范围（ROM）。请在各输入框中填入实际测量角度值，系统将自动根据正常范围评定得分。',
+sections:[{title:'主要关节活动度（填写实测角度→自动评分）',items:[
+{icon:'🔄',text:'1. 肩关节前屈（正常0-180°）',input:true,unit:'°',maxVal:180,thresholds:[{max:89,sc:0,lb:'严重受限'},{min:90,max:149,sc:1,lb:'中度受限'},{min:150,sc:2,lb:'正常/轻度受限'}]},
+{icon:'🔄',text:'2. 肩关节外展（正常0-180°）',input:true,unit:'°',maxVal:180,thresholds:[{max:89,sc:0,lb:'严重受限'},{min:90,max:149,sc:1,lb:'中度受限'},{min:150,sc:2,lb:'正常/轻度受限'}]},
+{icon:'🔄',text:'3. 肘关节屈伸（正常0-145°）',input:true,unit:'°',maxVal:145,thresholds:[{max:89,sc:0,lb:'严重受限'},{min:90,max:119,sc:1,lb:'中度受限'},{min:120,sc:2,lb:'正常/轻度受限'}]},
+{icon:'🔄',text:'4. 腕关节屈伸（正常0-150°）',input:true,unit:'°',maxVal:150,thresholds:[{max:59,sc:0,lb:'严重受限'},{min:60,max:119,sc:1,lb:'中度受限'},{min:120,sc:2,lb:'正常/轻度受限'}]},
+{icon:'🔄',text:'5. 髋关节屈曲（正常0-125°）',input:true,unit:'°',maxVal:125,thresholds:[{max:59,sc:0,lb:'严重受限'},{min:60,max:99,sc:1,lb:'中度受限'},{min:100,sc:2,lb:'正常/轻度受限'}]},
+{icon:'🔄',text:'6. 膝关节屈伸（正常0-135°）',input:true,unit:'°',maxVal:135,thresholds:[{max:59,sc:0,lb:'严重受限'},{min:60,max:109,sc:1,lb:'中度受限'},{min:110,sc:2,lb:'正常/轻度受限'}]},
+{icon:'🔄',text:'7. 踝关节背屈/跖屈（正常0-50°）',input:true,unit:'°',maxVal:50,thresholds:[{max:19,sc:0,lb:'严重受限'},{min:20,max:39,sc:1,lb:'中度受限'},{min:40,sc:2,lb:'正常/轻度受限'}]}
+]}],
+calc:function(a){let t=0,d=[];let idx=0;this.sections[0].items.forEach(it=>{idx++;let sc=a[idx]||0;t+=sc;d.push({icon:it.icon,name:it.text,score:sc,max:2,note:'实测值:'+(a['rom_'+idx+'_val']||'-')})});let lv,lc;if(t>=12){lv='关节活动度基本正常';lc='good'}else if(t>=8){lv='轻度活动受限';lc='mid'}else if(t>=4){lv='中度活动受限';lc='warn'}else{lv='重度活动受限';lc='severe'}return{total:t,max:14,level:lv,lvlClass:lc,detail:d}}};
 
 // ================================================================
-// 状态
+//  渲染逻辑
 // ================================================================
+
 let currentScale = null;
 let answers = {};
 
-// ================================================================
-// 渲染侧边导航
-// ================================================================
 function renderSidebar() {
-    const nav = document.getElementById('sidebarNav');
-    let html = '<div class="nav-group-label">评估量表</div>';
-    const keys = Object.keys(SCALES);
-    keys.forEach(key => {
+  let html = '';
+  GROUPS.forEach(g => {
+    html += '<div class="nav-group-label">' + esc(g.label) + '</div>';
+    if (g.scales.length === 0) {
+      html += '<div class="nav-item" style="opacity:.35;cursor:default;font-size:11px"><span class="nav-icon">⏳</span>暂无量表</div>';
+    } else {
+      g.scales.forEach(key => {
         const s = SCALES[key];
-        html += `<button class="nav-item" onclick="selectScale('${key}')" id="nav_${key}">
-            <span class="nav-icon">${s.icon}</span>
-            <span>${s.name}</span>
-            <span class="nav-badge" id="badge_${key}">${s.chapter}章</span>
-        </button>`;
-    });
-    nav.innerHTML = html;
+        if (!s) return;
+        html += '<button class="nav-item" onclick="selectScale(\'' + key + '\')" id="nav_' + key + '">' +
+          '<span class="nav-icon">' + s.icon + '</span><span>' + esc(s.name) + '</span>' +
+          '<span class="nav-badge" id="badge_' + key + '"></span></button>';
+      });
+    }
+  });
+  document.getElementById('sidebarNav').innerHTML = html;
 }
 
-// ================================================================
-// 选择量表
-// ================================================================
 function selectScale(key) {
-    currentScale = key;
-    const s = SCALES[key];
-    answers = {};
-
-    // 更新导航高亮
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('nav_' + key).classList.add('active');
-    document.getElementById('topbarTitle').textContent = s.icon + ' ' + s.name;
-    document.getElementById('topbarStatus').textContent = '第' + s.chapter + '章';
-
-    // 渲染问卷页
-    renderQuestionPage(s);
-    closeSidebar();
-}
-
-// ================================================================
-// 渲染问卷
-// ================================================================
-// HTML转义
-function esc(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  currentScale = key;
+  const s = SCALES[key];
+  if (!s) return;
+  answers[key] = {};
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navEl = document.getElementById('nav_' + key);
+  if (navEl) navEl.classList.add('active');
+  document.getElementById('topbarTitle').textContent = s.icon + ' ' + s.name;
+  document.getElementById('topbarStatus').textContent = GROUPS.find(g => g.scales.includes(key))?.label || '通用';
+  renderQuestionPage(s);
+  closeS();
 }
 
 function renderQuestionPage(s) {
-    const container = document.getElementById('pageContainer');
-    let html = `
-        <div class="section-intro">
-            <h3>📌 ${esc(s.name)} - 评估说明</h3>
-            <p>${esc(s.desc)} 请根据患者实际表现，在每一项中选择最符合的选项。</p>
-        </div>
-        <div id="questionsContainer"></div>
-        <div class="bottom-bar">
-            <span class="progress-text" id="progressText">已作答：<strong>0</strong> / <strong id="totalQCount">0</strong> 项</span>
-            <button class="btn btn-primary" id="btnSubmit" onclick="submitAssessment()" disabled>✅ 提交评估 →</button>
-        </div>
-    `;
-    container.innerHTML = html;
+  const container = document.getElementById('pageContainer');
+  let totalQ = 0;
+  s.sections.forEach(sec => totalQ += sec.items.length);
 
-    let qHtml = '';
-    let totalQ = 0;
-    s.sections.forEach((section, si) => {
-        qHtml += `<div style="font-size:14px;font-weight:600;color:#1a365d;margin:16px 0 10px;">${esc(section.title)}</div>`;
-        section.items.forEach(item => {
-            totalQ++;
-            // 用索引qIdx作为唯一标识（避免题目文字含引号破坏HTML属性）
-            const qIdx = s.id + '_q' + totalQ;
-            const optHtml = item.opts.map((opt, oi) => `
-                <label class="option-item" onclick="selectOption('${s.id}', ${totalQ}, ${opt.s}, this)">
-                    <input type="radio" name="${qIdx}" value="${opt.s}">
-                    <span class="custom-radio"></span>
-                    <span class="option-text">${esc(opt.t)}</span>
-                    <span class="option-score">${opt.s} 分</span>
-                </label>
-            `).join('');
-            qHtml += `
-                <div class="question-card" id="card_${qIdx}">
-                    <div class="question-header">
-                        <span class="q-num">${totalQ}</span>
-                        <span class="q-text">${esc(item.text)}</span>
-                        <span class="q-icon">${esc(item.icon)}</span>
-                    </div>
-                    <div class="options-group">${optHtml}</div>
-                </div>
-            `;
-        });
+  let html = '<div class="section-intro"><h3>📌 ' + esc(s.name) + '</h3><p>' + esc(s.desc) + '</p></div>';
+  html += '<div id="questionsContainer">';
+  let qIdx = 0;
+  s.sections.forEach(section => {
+    html += '<div style="font-size:13px;font-weight:600;color:#1a365d;margin:14px 0 8px;">' + esc(section.title) + '</div>';
+    section.items.forEach(item => {
+      qIdx++;
+      if (item.input) {
+        // 填空模式（ROM专用）
+        html += '<div class="question-card" id="card_' + s.id + '_' + qIdx + '">' +
+          '<div class="question-header"><span class="q-num">' + qIdx + '</span><span class="q-text">' + esc(item.text) + '</span><span class="q-icon">' + esc(item.icon) + '</span></div>' +
+          '<div class="input-group">' +
+          '<label>测量值：</label><input type="number" id="input_' + s.id + '_' + qIdx + '" min="0" max="' + item.maxVal + '" step="1" placeholder="输入角度" ' +
+          'oninput="handleROMInput(\'' + s.id + '\',' + qIdx + ',this)" ' +
+          (answers[s.id] && answers[s.id][qIdx] !== undefined ? 'value="' + (answers[s.id]['rom_'+qIdx+'_val']||'') + '"' : '') + '>' +
+          '<span class="input-hint">' + esc(item.unit || '°') + '</span>' +
+          '<span class="input-score" id="score_' + s.id + '_' + qIdx + '">' +
+          (answers[s.id] && answers[s.id][qIdx] !== undefined ? answers[s.id][qIdx] + '分' : '—') +
+          '</span></div></div>';
+      } else {
+        // 选择题模式
+        const optHtml = item.opts.map((opt, oi) =>
+          '<label class="option-item" onclick="selectOpt(\'' + s.id + '\',' + qIdx + ',' + opt.s + ',this)">' +
+          '<input type="radio" name="q_' + s.id + '_' + qIdx + '" value="' + opt.s + '">' +
+          '<span class="custom-radio"></span><span class="option-text">' + esc(opt.t) + '</span>' +
+          '<span class="option-score">' + opt.s + '分</span></label>'
+        ).join('');
+        html += '<div class="question-card" id="card_' + s.id + '_' + qIdx + '">' +
+          '<div class="question-header"><span class="q-num">' + qIdx + '</span><span class="q-text">' + esc(item.text) + '</span><span class="q-icon">' + esc(item.icon) + '</span></div>' +
+          '<div class="options-group">' + optHtml + '</div></div>';
+      }
     });
-    document.getElementById('questionsContainer').innerHTML = qHtml;
-    document.getElementById('totalQCount').textContent = totalQ;
-    document.getElementById('progressText').innerHTML = `已作答：<strong>0</strong> / <strong>${totalQ}</strong> 项`;
+  });
+  html += '</div>';
+  html += '<div class="bottom-bar"><span class="progress-text" id="progressText">已作答：<strong>0</strong> / <strong>' + totalQ + '</strong> 项</span>' +
+    '<button class="btn btn-primary" id="btnSubmit" onclick="submitAssessment()" disabled>✅ 提交评估 →</button></div>';
+  container.innerHTML = html;
+  document.getElementById('progressText').innerHTML = '已作答：<strong>0</strong> / <strong>' + totalQ + '</strong> 项';
 }
 
-// ================================================================
-// 选择选项（用题目序号qIdx标识，避免特殊字符问题）
-// ================================================================
-function selectOption(sId, qIdx, score, labelEl) {
-    if (!answers[sId]) answers[sId] = {};
-    answers[sId][qIdx] = score;
+// ===== 选择选项 =====
+function selectOpt(sId, qIdx, score, labelEl) {
+  if (!answers[sId]) answers[sId] = {};
+  answers[sId][qIdx] = score;
+  const card = labelEl.closest('.question-card');
+  card.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
+  labelEl.classList.add('selected');
+  labelEl.querySelector('input[type="radio"]').checked = true;
+  card.classList.add('answered');
+  updateProgress(sId);
+}
 
-    const card = labelEl.closest('.question-card');
-    card.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
-    labelEl.classList.add('selected');
-    labelEl.querySelector('input[type="radio"]').checked = true;
-    card.classList.add('answered');
-
+// ===== ROM输入处理 =====
+function handleROMInput(sId, qIdx, inputEl) {
+  if (!answers[sId]) answers[sId] = {};
+  const val = parseFloat(inputEl.value);
+  const item = findROMItem(sId, qIdx);
+  if (!item) return;
+  const scoreEl = document.getElementById('score_' + sId + '_' + qIdx);
+  const card = document.getElementById('card_' + sId + '_' + qIdx);
+  if (isNaN(val) || val < 0) {
+    delete answers[sId][qIdx];
+    delete answers[sId]['rom_' + qIdx + '_val'];
+    if (scoreEl) scoreEl.textContent = '—';
+    if (card) card.classList.remove('answered');
     updateProgress(sId);
+    return;
+  }
+  let sc = 0;
+  for (const th of item.thresholds) {
+    if (th.min !== undefined && th.max !== undefined) {
+      if (val >= th.min && val <= th.max) { sc = th.sc; break; }
+    } else if (th.min !== undefined && val >= th.min) { sc = th.sc; break; }
+    else if (th.max !== undefined && val <= th.max) { sc = th.sc; break; }
+  }
+  answers[sId][qIdx] = sc;
+  answers[sId]['rom_' + qIdx + '_val'] = val;
+  if (scoreEl) scoreEl.textContent = sc + '分';
+  if (card) card.classList.add('answered');
+  updateProgress(sId);
+}
+
+function findROMItem(sId, qIdx) {
+  const s = SCALES[sId];
+  if (!s) return null;
+  let idx = 0;
+  for (const sec of s.sections) {
+    for (const item of sec.items) {
+      idx++;
+      if (idx === qIdx) return item;
+    }
+  }
+  return null;
 }
 
 function updateProgress(sId) {
-    if (!answers[sId]) return;
-    const count = Object.keys(answers[sId]).length;
-    const total = countTotalQuestions(sId);
-    document.getElementById('progressText').innerHTML = `已作答：<strong>${count}</strong> / <strong>${total}</strong> 项`;
-    document.getElementById('btnSubmit').disabled = count < total;
+  if (!answers[sId]) return;
+  const count = Object.keys(answers[sId]).filter(k => !k.startsWith('rom_')).length;
+  const total = countTotalQuestions(sId);
+  const el = document.getElementById('progressText');
+  if (el) el.innerHTML = '已作答：<strong>' + count + '</strong> / <strong>' + total + '</strong> 项';
+  const btn = document.getElementById('btnSubmit');
+  if (btn) btn.disabled = count < total;
 }
 
 function countTotalQuestions(sId) {
-    let n = 0;
-    SCALES[sId].sections.forEach(s => n += s.items.length);
-    return n;
+  let n = 0;
+  const s = SCALES[sId];
+  if (!s) return 0;
+  s.sections.forEach(sec => n += sec.items.length);
+  return n;
 }
 
-// ================================================================
-// 提交评估
-// ================================================================
+// ===== 提交评估 =====
 function submitAssessment() {
-    const s = SCALES[currentScale];
-    const ans = answers[currentScale] || {};
-    if (Object.keys(ans).length < countTotalQuestions(currentScale)) return;
+  const s = SCALES[currentScale];
+  const ans = answers[currentScale] || {};
+  const total = countTotalQuestions(currentScale);
+  const answered = Object.keys(ans).filter(k => !k.startsWith('rom_')).length;
+  if (answered < total) return;
 
-    const result = s.calc(ans);
-    localStorage.setItem('rehab_' + currentScale + '_answers', JSON.stringify(ans));
-    localStorage.setItem('rehab_' + currentScale + '_result', JSON.stringify(result));
-
-    renderResultPage(s, result);
+  const result = s.calc(ans);
+  localStorage.setItem('rehab_' + currentScale + '_answers', JSON.stringify(ans));
+  localStorage.setItem('rehab_' + currentScale + '_result', JSON.stringify(result));
+  renderResultPage(s, result);
 }
 
-// ================================================================
-// 渲染结果页
-// ================================================================
+// ===== 渲染结果 =====
 function renderResultPage(s, result) {
-    const container = document.getElementById('pageContainer');
-    let detailHtml = result.detail.map((d, i) => {
-        const pct = d.max > 0 ? (d.score / d.max) * 100 : 0;
-        return `
-            <div class="score-row">
-                <span class="sr-index">${i+1}</span>
-                <span class="sr-icon">${d.icon}</span>
-                <span class="sr-name">${d.name}</span>
-                <span class="sr-score">${d.score}</span>
-                <span class="sr-max">/ ${d.max}</span>
-                <div class="sr-bar-bg"><div class="sr-bar-fill" style="width:${pct}%"></div></div>
-            </div>
-        `;
-    }).join('');
+  const container = document.getElementById('pageContainer');
+  let detailHtml = result.detail.map((d, i) => {
+    const pct = d.max > 0 ? (d.score / d.max) * 100 : 0;
+    const noteHtml = d.note ? '<span style="font-size:10px;color:#aaa;margin-left:8px">' + esc(d.note) + '</span>' : '';
+    return '<div class="score-row"><span class="sr-index">' + (i+1) + '</span><span class="sr-icon">' + d.icon + '</span>' +
+      '<span class="sr-name">' + esc(d.name) + noteHtml + '</span><span class="sr-score">' + d.score + '</span>' +
+      '<span class="sr-max">/ ' + d.max + '</span><div class="sr-bar-bg"><div class="sr-bar-fill" style="width:' + pct + '%"></div></div></div>';
+  }).join('');
 
-    container.innerHTML = `
-        <div class="result-hero">
-            <div class="score-label">${s.name} · 总分</div>
-            <div class="score-number">${result.total}</div>
-            <div style="font-size:12px;opacity:.7;">/ ${result.max} 分</div>
-            <div class="score-level ${result.lvlClass}">${result.level}</div>
-        </div>
-        <div class="score-detail-title">📊 各项得分明细</div>
-        <div class="score-table">${detailHtml}</div>
-        <div class="result-actions">
-            <button class="btn btn-outline" onclick="selectScale('${s.id}')">← 返回重新评估</button>
-            <button class="btn btn-primary" onclick="selectScaleByIndex(0)">📋 切换其他量表</button>
-        </div>
-    `;
-    document.getElementById('topbarStatus').textContent = result.total + '/' + result.max + '分';
+  container.innerHTML =
+    '<div class="result-hero"><div class="score-label">' + esc(s.name) + ' · 总分</div><div class="score-number">' + result.total + '</div>' +
+    '<div style="font-size:11px;opacity:.7;">/ ' + result.max + ' 分</div><div class="score-level ' + result.lvlClass + '">' + result.level + '</div></div>' +
+    '<div class="score-detail-title">📊 各项得分明细</div><div class="score-table">' + detailHtml + '</div>' +
+    '<div class="result-actions"><button class="btn btn-outline" onclick="selectScale(\'' + s.id + '\')">← 返回重新评估</button>' +
+    '<button class="btn btn-secondary" onclick="location.reload()">📋 切换其他量表</button></div>';
 
-    // 更新导航栏标记
-    const badge = document.getElementById('badge_' + s.id);
-    if (badge) badge.textContent = result.total + '分';
+  document.getElementById('topbarStatus').textContent = result.total + '/' + result.max + '分';
+  const badge = document.getElementById('badge_' + s.id);
+  if (badge) badge.textContent = result.total + '分';
 }
 
-// ================================================================
-// 辅助导航
-// ================================================================
-function selectScaleByIndex(idx) {
-    const keys = Object.keys(SCALES);
-    if (idx < keys.length) selectScale(keys[idx]);
-}
+// ===== 侧栏控制 =====
+function toggleS() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('show'); }
+function closeS() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
 
-// ================================================================
-// 恢复已保存数据
-// ================================================================
-function loadSavedData() {
-    const keys = Object.keys(SCALES);
-    keys.forEach(key => {
-        const saved = localStorage.getItem('rehab_' + key + '_result');
-        if (saved) {
-            const result = JSON.parse(saved);
-            const badge = document.getElementById('badge_' + key);
-            if (badge) badge.textContent = result.total + '分';
-        }
-    });
-}
-
-// ================================================================
-// 侧栏控制
-// ================================================================
-function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('sidebarOverlay').classList.toggle('show');
-}
-function closeSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('sidebarOverlay').classList.remove('show');
-}
-
-// ================================================================
-// 初始化
-// ================================================================
+// ===== 初始化 =====
 window.addEventListener('DOMContentLoaded', function() {
-    renderSidebar();
-    // 默认选中第一个（Barthel）
-    selectScale('barthel');
-    loadSavedData();
+  renderSidebar();
+  const keys = Object.keys(SCALES);
+  keys.forEach(key => {
+    const saved = localStorage.getItem('rehab_' + key + '_result');
+    if (saved) {
+      const result = JSON.parse(saved);
+      const badge = document.getElementById('badge_' + key);
+      if (badge) badge.textContent = result.total + '分';
+    }
+  });
+  if (keys.length > 0) selectScale(keys[0]);
 });
 </script>
 </body>
