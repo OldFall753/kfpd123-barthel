@@ -343,19 +343,19 @@ sections:[{title:'肌张力评定',items:[
 ]}],
 calc:function(a){let t=a[1]||0;let lv,lc;if(t==0){lv='无肌张力增高';lc='good'}else if(t<=2){lv='轻度肌张力增高';lc='mid'}else if(t<=3){lv='中度肌张力增高';lc='warn'}else{lv='重度肌张力增高/僵硬';lc='severe'}return{total:t,max:5,level:lv,lvlClass:lc,detail:[{icon:'💪',name:'MAS分级',score:t,max:5}]}}};
 
-SCALES.mmt={id:'mmt',group:'通用',icon:'💪',name:'MMT评估量表',desc:'徒手肌力检查（MMT），Lovett 6级分级法。评估主要肌群肌力。',
+SCALES.mmt={id:'mmt',group:'通用',icon:'💪',name:'MMT评估量表',desc:'徒手肌力检查（MMT），细化分级法：0～5级，含+/-半级细分。评估主要肌群肌力。',
 sections:[
 {title:'上肢肌群',items:[
-{icon:'💪',text:'1. 肩关节屈曲（三角肌前束）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]},
-{icon:'💪',text:'2. 肘关节屈曲（肱二头肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]},
-{icon:'💪',text:'3. 肘关节伸展（肱三头肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]},
-{icon:'✊',text:'4. 握力（指屈肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]}
+{icon:'💪',text:'1. 肩关节屈曲（三角肌前束）',opts:[{t:'0级',s:0},{t:'1级',s:1.0},{t:'1+级',s:1.5},{t:'2-级',s:1.5},{t:'2级',s:2.0},{t:'2+级',s:2.5},{t:'3-级',s:2.5},{t:'3级',s:3.0},{t:'3+级',s:3.5},{t:'4-级',s:3.5},{t:'4级',s:4.0},{t:'4+级',s:4.5},{t:'5级',s:5.0}]},
+{icon:'💪',text:'2. 肘关节屈曲（肱二头肌）',opts:[{t:'0级',s:0},{t:'1级',s:1.0},{t:'1+级',s:1.5},{t:'2-级',s:1.5},{t:'2级',s:2.0},{t:'2+级',s:2.5},{t:'3-级',s:2.5},{t:'3级',s:3.0},{t:'3+级',s:3.5},{t:'4-级',s:3.5},{t:'4级',s:4.0},{t:'4+级',s:4.5},{t:'5级',s:5.0}]},
+{icon:'💪',text:'3. 肘关节伸展（肱三头肌）',opts:[{t:'0级',s:0},{t:'1级',s:1.0},{t:'1+级',s:1.5},{t:'2-级',s:1.5},{t:'2级',s:2.0},{t:'2+级',s:2.5},{t:'3-级',s:2.5},{t:'3级',s:3.0},{t:'3+级',s:3.5},{t:'4-级',s:3.5},{t:'4级',s:4.0},{t:'4+级',s:4.5},{t:'5级',s:5.0}]},
+{icon:'✊',text:'4. 握力（指屈肌）',opts:[{t:'0级',s:0},{t:'1级',s:1.0},{t:'1+级',s:1.5},{t:'2-级',s:1.5},{t:'2级',s:2.0},{t:'2+级',s:2.5},{t:'3-级',s:2.5},{t:'3级',s:3.0},{t:'3+级',s:3.5},{t:'4-级',s:3.5},{t:'4级',s:4.0},{t:'4+级',s:4.5},{t:'5级',s:5.0}]}
 ]},{title:'下肢肌群',items:[
-{icon:'🦵',text:'5. 髋关节屈曲（髂腰肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]},
-{icon:'🦵',text:'6. 膝关节伸展（股四头肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]},
-{icon:'🦶',text:'7. 踝关节背屈（胫前肌）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]}
+{icon:'🦵',text:'5. 髋关节屈曲（髂腰肌）',opts:[{t:'0级',s:0},{t:'1级',s:1.0},{t:'1+级',s:1.5},{t:'2-级',s:1.5},{t:'2级',s:2.0},{t:'2+级',s:2.5},{t:'3-级',s:2.5},{t:'3级',s:3.0},{t:'3+级',s:3.5},{t:'4-级',s:3.5},{t:'4级',s:4.0},{t:'4+级',s:4.5},{t:'5级',s:5.0}]},
+{icon:'🦵',text:'6. 膝关节伸展（股四头肌）',opts:[{t:'0级',s:0},{t:'1级',s:1.0},{t:'1+级',s:1.5},{t:'2-级',s:1.5},{t:'2级',s:2.0},{t:'2+级',s:2.5},{t:'3-级',s:2.5},{t:'3级',s:3.0},{t:'3+级',s:3.5},{t:'4-级',s:3.5},{t:'4级',s:4.0},{t:'4+级',s:4.5},{t:'5级',s:5.0}]},
+{icon:'🦶',text:'7. 踝关节背屈（胫前肌）',opts:[{t:'0级',s:0},{t:'1级',s:1.0},{t:'1+级',s:1.5},{t:'2-级',s:1.5},{t:'2级',s:2.0},{t:'2+级',s:2.5},{t:'3-级',s:2.5},{t:'3级',s:3.0},{t:'3+级',s:3.5},{t:'4-级',s:3.5},{t:'4级',s:4.0},{t:'4+级',s:4.5},{t:'5级',s:5.0}]}
 ]},{title:'躯干肌群',items:[
-{icon:'🧍',text:'8. 腹肌（仰卧起坐动作）',opts:[{t:'0级',s:0},{t:'1级',s:1},{t:'2级',s:2},{t:'3级',s:3},{t:'4级',s:4},{t:'5级',s:5}]}
+{icon:'🧍',text:'8. 腹肌（仰卧起坐动作）',opts:[{t:'0级',s:0},{t:'1级',s:1.0},{t:'1+级',s:1.5},{t:'2-级',s:1.5},{t:'2级',s:2.0},{t:'2+级',s:2.5},{t:'3-级',s:2.5},{t:'3级',s:3.0},{t:'3+级',s:3.5},{t:'4-级',s:3.5},{t:'4级',s:4.0},{t:'4+级',s:4.5},{t:'5级',s:5.0}]}
 ]}],
 calc:function(a){let t=0,d=[];let idx=0;this.sections.forEach(s=>{s.items.forEach(it=>{idx++;let sc=a[idx]||0;t+=sc;d.push({icon:it.icon,name:it.text,score:sc,max:5})})});let avg=(t/8).toFixed(1);let lv,lc;if(avg>=4){lv='肌力基本正常';lc='good'}else if(avg>=3){lv='肌力中度减退';lc='mid'}else if(avg>=2){lv='肌力明显减退';lc='warn'}else if(avg>=1){lv='肌力重度减退';lc='bad'}else{lv='完全瘫痪';lc='severe'}return{total:t,max:40,level:lv+'(平均'+avg+'级)',lvlClass:lc,detail:d}}};
 
@@ -443,7 +443,7 @@ function renderQuestionPage(s) {
           '<label class="option-item" onclick="selectOpt(\'' + s.id + '\',' + qIdx + ',' + opt.s + ',this)">' +
           '<input type="radio" name="q_' + s.id + '_' + qIdx + '" value="' + opt.s + '">' +
           '<span class="custom-radio"></span><span class="option-text">' + esc(opt.t) + '</span>' +
-          '<span class="option-score">' + opt.s + '分</span></label>'
+          '<span class="option-score">' + opt.s.toFixed(1) + '分</span></label>'
         ).join('');
         html += '<div class="question-card" id="card_' + s.id + '_' + qIdx + '">' +
           '<div class="question-header"><span class="q-num">' + qIdx + '</span><span class="q-text">' + esc(item.text) + '</span><span class="q-icon">' + esc(item.icon) + '</span></div>' +
@@ -552,7 +552,7 @@ function renderResultPage(s, result) {
     const pct = d.max > 0 ? (d.score / d.max) * 100 : 0;
     const noteHtml = d.note ? '<span style="font-size:10px;color:#aaa;margin-left:8px">' + esc(d.note) + '</span>' : '';
     return '<div class="score-row"><span class="sr-index">' + (i+1) + '</span><span class="sr-icon">' + d.icon + '</span>' +
-      '<span class="sr-name">' + esc(d.name) + noteHtml + '</span><span class="sr-score">' + d.score + '</span>' +
+      '<span class="sr-name">' + esc(d.name) + noteHtml + '</span><span class="sr-score">' + (Number.isInteger(d.score) ? d.score : d.score.toFixed(1)) + '</span>' +
       '<span class="sr-max">/ ' + d.max + '</span><div class="sr-bar-bg"><div class="sr-bar-fill" style="width:' + pct + '%"></div></div></div>';
   }).join('');
 
